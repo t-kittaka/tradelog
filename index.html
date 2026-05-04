@@ -7994,10 +7994,15 @@ function populateTradeSelects() {
     renderTradeChecklist();
   }
   if (postLink) {
+    const cur = postLink.value;
     postLink.innerHTML = '<option value="">— Not linked —</option>';
-    ptcLog.slice(0, 20).forEach(entry => {
-      postLink.innerHTML += `<option value="${entry.id}">${new Date(entry.timestamp).toLocaleString()} — ${entry.dir} ${entry.instr}</option>`;
+    ptcLog.slice(0, 30).forEach(entry => {
+      const localDate = new Date(entry.timestamp).toLocaleDateString(undefined, {month:'numeric',day:'numeric'});
+      const localTime = new Date(entry.timestamp).toLocaleTimeString(undefined, {hour:'2-digit',minute:'2-digit'});
+      postLink.innerHTML += `<option value="${entry.id}">${localDate} ${localTime} — ${entry.dir} ${entry.instr}${entry.stratName?' ('+entry.stratName+')':''}</option>`;
     });
+    // Restore selection if still valid
+    if (cur && postLink.querySelector(`option[value="${cur}"]`)) postLink.value = cur;
   }
 }
 
@@ -8172,13 +8177,24 @@ function clearTradeChecklist() {
 function renderTradePTCLog() {
   const el = document.getElementById('tradePTCLog');
   if (!el) return;
-  const today = new Date().toLocaleDateString('en-CA');
-  const todayEntries = ptcLog.filter(e => new Date(e.timestamp).toLocaleDateString('en-CA') === today);
-  if (!todayEntries.length) {
-    el.innerHTML = '<div class="empty-state"><div style="font-size:20px">⚡</div>No pre-trade entries today. Run the checklist before your next trade.</div>';
+  // Show all entries, grouped — most recent first
+  if (!ptcLog.length) {
+    el.innerHTML = '<div class="empty-state"><div style="font-size:20px">⚡</div>No pre-trade entries yet. Run the checklist before your next trade.</div>';
     return;
   }
-  el.innerHTML = todayEntries.map(e => `
+  // Group by local date
+  const groups = {};
+  ptcLog.forEach(e => {
+    const localDate = new Date(e.timestamp).toLocaleDateString(undefined, {weekday:'short',month:'short',day:'numeric'});
+    if (!groups[localDate]) groups[localDate] = [];
+    groups[localDate].push(e);
+  });
+  const todayLabel = new Date().toLocaleDateString(undefined, {weekday:'short',month:'short',day:'numeric'});
+  let html = '';
+  Object.entries(groups).forEach(([dateLabel, entries]) => {
+    const isToday = dateLabel === todayLabel;
+    html += `<div style="font-family:var(--mono);font-size:9px;color:${isToday?'var(--accent)':'var(--text3)'};text-transform:uppercase;letter-spacing:.1em;padding:4px 0;margin-top:${html?'10px':'0'}">${isToday ? 'Today' : dateLabel}</div>`;
+    html += entries.map(e => `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
         <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${new Date(e.timestamp).toLocaleTimeString()}</span>
@@ -8196,6 +8212,8 @@ function renderTradePTCLog() {
         <button onclick="deleteEditPTC('${e.id}')" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Delete</button>
       </div>
     </div>`).join('');
+  });
+  el.innerHTML = html;
 }
 
 // ── POST-TRADE QUICK CAPTURE ──
@@ -9590,6 +9608,7 @@ function saveEditPTC() {
 
   saveSessionDData();
   renderTradePTCLog();
+  populateTradeSelects(); // refresh dropdown to show updated direction/instrument
   closeEditPTC();
 }
 
