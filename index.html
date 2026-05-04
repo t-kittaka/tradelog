@@ -9476,6 +9476,26 @@ async function pollAlerts() {
   }
 }
 
+
+// ── runStrategyLab alias (calls initStratLab) ──
+function runStrategyLab() {
+  initStratLab();
+}
+
+// ── Lightbox ──
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  if (!lb || !img) return;
+  img.src = src;
+  lb.classList.remove('hidden');
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  if (lb) lb.classList.add('hidden');
+}
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
