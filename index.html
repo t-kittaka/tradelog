@@ -2317,7 +2317,7 @@ async function load(){
 function initDefaults(){
   if(accounts.length===0)accounts=[{id:'a1',name:'Sim Account 1',type:'sim',color:'#5599ff',propLimits:null}];
   if(strategies.length===0)strategies=[
-    {id:'s1',name:'Trend Line Breaks',color:'#00e5a0',rules:'Enter on trend line break. Stop on opposing trend line + buffer. Exit when new trend line breaks. Max 4% risk.',checklist:['Confirmed trend line break','Stop on opposing trend line','Risk below 4%','Exited when new trend broke','Volume confirmed breakout']},
+    {id:'s1',name:'Trend Line Breaks',color:'#00e5a0',rules:'Enter on trend line break. Stop on opposing trend line + buffer. Exit when new trend line breaks. Max 4% risk.',checklist:['Confirmed trend line break','Stop loss placed on opposing trend line','Risk within 4% of account','Volume confirms breakout']},
     {id:'s2',name:'Scalping',color:'#5599ff',rules:'Short duration, quick entries/exits. Tight stops. 2-4 tick targets.',checklist:['Clear momentum signal','Tight stop immediately','Exited at target or reversal','Did not overstay','Within 4% risk']},
     {id:'s3',name:'Support / Resistance',color:'#ffb347',rules:'Enter at key S/R levels with confirmation. Stop below S or above R.',checklist:['S/R level pre-identified','Waited for confirmation','Stop correctly placed','Risk within 4%','Level tested 2+ times']},
   ];
@@ -4372,6 +4372,20 @@ async function initApp() {
   const soBtn = document.getElementById('signOutBtn');
   if (soBtn) soBtn.style.display = 'block';
 }
+
+
+// ── DATA MIGRATION: fix bad checklist item in Trend Line Breaks ──
+(function fixTLBChecklist() {
+  const tls = strategies.find(s => s.name === 'Trend Line Breaks');
+  if (tls && tls.checklist) {
+    const badIdx = tls.checklist.indexOf('Exited when new trend broke');
+    if (badIdx >= 0) {
+      tls.checklist.splice(badIdx, 1);
+      save();
+      console.log('Removed bad checklist item from Trend Line Breaks');
+    }
+  }
+})();
 
 // Try to restore saved session, otherwise show login
 (async function startup() {
@@ -8177,6 +8191,10 @@ function renderTradePTCLog() {
       ${e.uncheckedItems?.length ? `<div style="font-size:10px;color:var(--amber);font-family:var(--mono)">⚠ ${e.uncheckedItems.join(' · ')}</div>` : '<div style="font-size:10px;color:var(--accent);font-family:var(--mono)">✓ All criteria met</div>'}
       ${e.screenshots?.length ? `<div style="display:flex;gap:4px;margin-top:5px">${e.screenshots.map(s=>`<img src="${s}" style="width:60px;height:45px;object-fit:cover;border-radius:3px;border:1px solid var(--border)">`).join('')}</div>` : ''}
       ${e.postNotes ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">${e.postNotes}</div>` : ''}
+      <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
+        <button onclick="openEditPTC('${e.id}')" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Edit</button>
+        <button onclick="deleteEditPTC('${e.id}')" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Delete</button>
+      </div>
     </div>`).join('');
 }
 
@@ -9496,6 +9514,94 @@ function closeLightbox() {
   if (lb) lb.classList.add('hidden');
 }
 
+
+// ══════════════════════════════════════════
+// EDIT PRE-TRADE LOG
+// ══════════════════════════════════════════
+let _editingPTCId = null;
+let _editingPTCConf = 0;
+
+function openEditPTC(id) {
+  const entry = ptcLog.find(e => e.id === id);
+  if (!entry) return;
+  _editingPTCId = id;
+
+  // Populate fields
+  document.getElementById('editPTCHypothesis').value = entry.hypothesis || '';
+  document.getElementById('editPTCDir').value = entry.dir || 'Long';
+  document.getElementById('editPTCStop').value = entry.stop || '';
+  document.getElementById('editPTCTarget').value = entry.target || '';
+  document.getElementById('editPTCOverride').value = entry.overrideNote || '';
+  document.getElementById('editPTCPostNotes').value = entry.postNotes || '';
+
+  // Populate instrument
+  const instrSel = document.getElementById('editPTCInstr');
+  instrSel.innerHTML = Object.keys(INSTRUMENTS).map(s => `<option${s === entry.instr ? ' selected' : ''}>${s}</option>`).join('');
+
+  // Populate strategy
+  const stratSel = document.getElementById('editPTCStrat');
+  stratSel.innerHTML = '<option value="">— No strategy —</option>' +
+    strategies.map(s => `<option value="${s.id}"${s.id === entry.stratId ? ' selected' : ''}>${s.name}</option>`).join('');
+
+  // Set confidence
+  _editingPTCConf = entry.confidence || 0;
+  setEditPTCConf(_editingPTCConf);
+
+  const modal = document.getElementById('editPTCModal');
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('editPTCHypothesis')?.focus(), 50);
+}
+
+function setEditPTCConf(n) {
+  _editingPTCConf = n;
+  [1, 2, 3].forEach(i => {
+    const btn = document.getElementById('editConf' + i);
+    if (!btn) return;
+    const cls = ['', 'conf-lo', 'conf-md', 'conf-hi'][i];
+    btn.classList.toggle('sel', i === n);
+  });
+}
+
+function closeEditPTC() {
+  const modal = document.getElementById('editPTCModal');
+  if (modal) modal.style.display = 'none';
+  _editingPTCId = null;
+}
+
+function saveEditPTC() {
+  const entry = ptcLog.find(e => e.id === _editingPTCId);
+  if (!entry) { closeEditPTC(); return; }
+
+  entry.hypothesis = document.getElementById('editPTCHypothesis')?.value?.trim() || entry.hypothesis;
+  entry.dir = document.getElementById('editPTCDir')?.value || entry.dir;
+  entry.instr = document.getElementById('editPTCInstr')?.value || entry.instr;
+  entry.stop = parseFloat(document.getElementById('editPTCStop')?.value) || entry.stop;
+  entry.target = parseFloat(document.getElementById('editPTCTarget')?.value) || entry.target;
+  entry.overrideNote = document.getElementById('editPTCOverride')?.value?.trim() || '';
+  entry.postNotes = document.getElementById('editPTCPostNotes')?.value?.trim() || '';
+  entry.confidence = _editingPTCConf;
+
+  const stratSel = document.getElementById('editPTCStrat');
+  if (stratSel) {
+    entry.stratId = stratSel.value || '';
+    const strat = strategies.find(s => s.id === stratSel.value);
+    entry.stratName = strat?.name || '';
+  }
+
+  saveSessionDData();
+  renderTradePTCLog();
+  closeEditPTC();
+}
+
+function deleteEditPTC(id) {
+  if (!confirm('Delete this pre-trade log entry? This cannot be undone.')) return;
+  ptcLog = ptcLog.filter(e => e.id !== id);
+  saveSessionDData();
+  renderTradePTCLog();
+  // Refresh post-trade link dropdown
+  populateTradeSelects();
+}
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
@@ -9643,6 +9749,68 @@ function closeLightbox() {
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="closeClearMemoryModal()" style="padding:9px 20px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);font-weight:500">Keep my memory</button>
       <button onclick="clearAllMemory()" style="padding:9px 20px;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid rgba(255,85,85,.5);color:var(--red);cursor:pointer;border-radius:var(--radius);font-weight:500">Yes, clear everything</button>
+    </div>
+  </div>
+</div>
+<!-- ── EDIT PRE-TRADE LOG MODAL ── -->
+<div id="editPTCModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px 28px;width:560px;max-width:calc(100vw - 40px);max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.8)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)">Edit Pre-trade Entry</div>
+      <button onclick="closeEditPTC()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-group">
+        <label class="section-label">Hypothesis</label>
+        <textarea class="form-input" id="editPTCHypothesis" style="min-height:80px;font-size:12px"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="section-label">Direction</label>
+          <select class="form-input" id="editPTCDir">
+            <option value="Long">Long</option>
+            <option value="Short">Short</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="section-label">Instrument</label>
+          <select class="form-input" id="editPTCInstr">
+            <option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="section-label">Stop price</label>
+          <input type="number" class="form-input" id="editPTCStop" step="0.25">
+        </div>
+        <div class="form-group">
+          <label class="section-label">Target price</label>
+          <input type="number" class="form-input" id="editPTCTarget" step="0.25">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Strategy</label>
+        <select class="form-input" id="editPTCStrat"></select>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Confidence</label>
+        <div style="display:flex;gap:8px">
+          <button onclick="setEditPTCConf(1)" id="editConf1" class="conf-btn conf-lo" style="flex:1">1 — Low</button>
+          <button onclick="setEditPTCConf(2)" id="editConf2" class="conf-btn conf-md" style="flex:1">2 — Medium</button>
+          <button onclick="setEditPTCConf(3)" id="editConf3" class="conf-btn conf-hi" style="flex:1">3 — High</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Override note (if criteria not fully met)</label>
+        <textarea class="form-input" id="editPTCOverride" style="min-height:50px;font-size:12px"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Post-trade notes</label>
+        <textarea class="form-input" id="editPTCPostNotes" style="min-height:60px;font-size:12px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button onclick="closeEditPTC()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
+        <button onclick="saveEditPTC()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save changes</button>
+      </div>
     </div>
   </div>
 </div>
