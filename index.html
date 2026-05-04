@@ -1518,55 +1518,6 @@ tbody td{padding:6px 8px;vertical-align:middle}
       </div>
     </div>
   </div>
-</div>
-
-  <!-- ══ MEMORY SECTION ══ -->
-  <div id="memorySection" style="scroll-margin-top:20px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🧠 Coaching Memory</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
-        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">AI coaching insights are saved here automatically and injected into future sessions so the coach remembers your journey.</div>
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
-        <button onclick="clearAllMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
-      </div>
-      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
-    </div>
-  </div>
-
-  <!-- ══ ALERTS SECTION ══ -->
-  <div id="alertsSection" style="scroll-margin-top:20px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🔔 Alerts &amp; Monitoring</div>
-    <div id="alertsSettingsInner"></div>
-  </div>
-
-  <!-- ══ RISK CALCULATOR SECTION ══ -->
-  <div id="riskCalcSection" style="scroll-margin-top:20px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🧮 Risk Calculator</div>
-    <div class="card">
-      <div id="riskCalcInner"></div>
-    </div>
-  </div>
-
-  <!-- ══ MARKET & NEWS ══ -->
-  <div id="marketSection" style="scroll-margin-top:20px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">📰 Market &amp; News</div>
-    <div class="card">
-      <div style="font-size:12px;color:var(--text2);line-height:1.5">The market chart and live news feed are available in the <strong style="color:var(--accent)">📋 Plan tab</strong> — news with AI insights appears in the right column, and updates automatically when you open the tab each morning.</div>
-    </div>
-  </div>
-
-  <!-- ══ SESSION REPLAY ══ -->
-  <div id="sessionReplaySection" style="scroll-margin-top:20px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">⏪ Session Replay &amp; Screenshots</div>
-    <div id="replaySettingsInner"></div>
-  </div>
-
-
-
 <!-- TRADE MODAL -->
 <div class="modal-overlay hidden" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
@@ -2005,6 +1956,37 @@ tbody td{padding:6px 8px;vertical-align:middle}
   </div>
 </div>
 
+
+
+  <!-- ══ MEMORY SECTION ══ -->
+  <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
+        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
+        <button onclick="clearAllMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+      </div>
+      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- ══ ALERTS SECTION ══ -->
+  <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
+    <div id="alertsSettingsMount"></div>
+  </div>
+
+  <!-- ══ RISK CALCULATOR SECTION ══ -->
+  <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator</div>
+    <div id="riskCalcMount"></div>
+  </div>
+
 </div><!-- /content -->
 </div><!-- /main -->
 
@@ -2287,23 +2269,17 @@ function switchTab(tab){
   if(tab==='settings'){
     renderAccountManager();renderStratManager();renderEvolLog();populateEvolSelect();
     renderMemoryTab();
-    // Render alerts settings inline
-    const alertsInner = document.getElementById('alertsSettingsInner');
-    if(alertsInner && !alertsInner.dataset.rendered) {
+    // Mount alerts config into settings
+    const alertsMount = document.getElementById('alertsSettingsMount');
+    if(alertsMount && !alertsMount.dataset.rendered) {
       const alertsTab = document.getElementById('tab-alerts');
-      if(alertsTab) { alertsInner.innerHTML = alertsTab.innerHTML; alertsInner.dataset.rendered='1'; }
+      if(alertsTab) { alertsMount.innerHTML = alertsTab.innerHTML; alertsMount.dataset.rendered='1'; initAlertsTab(); }
     }
-    // Render risk calc inline
-    const riskInner = document.getElementById('riskCalcInner');
-    if(riskInner && !riskInner.dataset.rendered) {
+    // Mount risk calc into settings
+    const riskMount = document.getElementById('riskCalcMount');
+    if(riskMount && !riskMount.dataset.rendered) {
       const riskTab = document.getElementById('tab-calculator');
-      if(riskTab) { riskInner.innerHTML = riskTab.innerHTML; riskInner.dataset.rendered='1'; }
-    }
-    // Render replay inline
-    const replayInner = document.getElementById('replaySettingsInner');
-    if(replayInner && !replayInner.dataset.rendered) {
-      const replayTab = document.getElementById('tab-replay');
-      if(replayTab) { replayInner.innerHTML = replayTab.innerHTML; replayInner.dataset.rendered='1'; initReplayTab(); }
+      if(riskTab) { riskMount.innerHTML = riskTab.innerHTML; riskMount.dataset.rendered='1'; renderInstrTable(); }
     }
   }
   if(tab==='memory')renderMemoryTab();
@@ -4226,189 +4202,13 @@ function buildSSCard(ss){
     <img src="${ss.dataUrl||''}" alt="" onclick="openLightbox('${ss.id}')" style="width:100%;height:120px;object-fit:cover;cursor:zoom-in;display:block">
     <button class="sc-remove" onclick="removeSS('${ss.id}')">✕</button>
     <div class="sc-info">
-      <span class="sc-status ${statusCls[ss.status]||''}">${statusLabel[ss.status]||ss.status}</span>
-      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px">${ss.filename}</div>
-      ${detected}${matchInfo}
-      ${ss.status!=='analyzing'?`<select style="width:100%;margin-top:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:3px 6px;font-size:11px" onchange="manualAssignSS('${ss.id}',this.value)"><option value="">— Assign —</option>${opts}</select>`:''}
-    </div>`;
-  return card;
-}
-function openLightbox(ssId){const ss=stagedScreenshots.find(s=>s.id===ssId);if(!ss?.dataUrl)return;document.getElementById('lightboxImg').src=ss.dataUrl;document.getElementById('lightbox').classList.remove('hidden');}
-function closeLightbox(){document.getElementById('lightbox').classList.add('hidden');}
+      <span class="sc-status ${statusCls[ss.status]||''}">${statusLabel[ss.status]||ss.status}</span>${detected}${matchInfo}</div>`;el.appendChild(card);
 
-// ══════════════════════════════════════════
-// ALERTS ENGINE
-// ══════════════════════════════════════════
-function loadAlertConfig(){try{const s=localStorage.getItem('tj_alertconfig');if(s)alertConfig={...alertConfig,...JSON.parse(s)};}catch(e){}}
-function saveAlertConfig(){
-  const tog=(id,def)=>document.getElementById(id)?.classList.contains('on')??def;
-  alertConfig.cpi=tog('toggle-cpi',true);alertConfig.nfp=tog('toggle-nfp',true);
-  alertConfig.fomc=tog('toggle-fomc',true);alertConfig.gdp=tog('toggle-gdp',true);
-  alertConfig.medium=tog('toggle-medium',false);alertConfig.vol=tog('toggle-vol',true);
-  alertConfig.volspike=tog('toggle-volspike',true);alertConfig.gap=tog('toggle-gap',true);
-  alertConfig.sound=tog('toggle-sound',true);alertConfig.notif=tog('toggle-notif',true);alertConfig.autorec=tog('toggle-autorec',true);
-  alertConfig.volthresh=parseFloat(document.getElementById('cfg-volthresh')?.value)||.5;
-  alertConfig.gapthresh=parseFloat(document.getElementById('cfg-gapthresh')?.value)||.3;
-  alertConfig.levelthresh=parseInt(document.getElementById('cfg-levelthresh')?.value)||5;
-  alertConfig.instrument=document.getElementById('cfg-instrument')?.value||'MNQ=F';
-  alertConfig.poll=parseInt(document.getElementById('cfg-poll')?.value)||60;
-  alertConfig.volume=parseFloat(document.getElementById('cfg-volume')?.value)||.6;
-  localStorage.setItem('tj_alertconfig',JSON.stringify(alertConfig));
-}
-function initAlertsTab(){
-  loadAlertConfig();
-  const togMap={cpi:'toggle-cpi',nfp:'toggle-nfp',fomc:'toggle-fomc',gdp:'toggle-gdp',medium:'toggle-medium',vol:'toggle-vol',volspike:'toggle-volspike',gap:'toggle-gap',sound:'toggle-sound',notif:'toggle-notif',autorec:'toggle-autorec'};
-  Object.entries(togMap).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',alertConfig[k]??true);});
-  const numMap={volthresh:'cfg-volthresh',gapthresh:'cfg-gapthresh',levelthresh:'cfg-levelthresh',poll:'cfg-poll',volume:'cfg-volume'};
-  Object.entries(numMap).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=alertConfig[k];});
-  const ins=document.getElementById('cfg-instrument');if(ins)ins.value=alertConfig.instrument;
-  renderLevelsList();renderSoundPickers();renderAlertLog();updateAlertStatus();checkNotifPermission();
-}
-function checkNotifPermission(){const bar=document.getElementById('permissionBar');if(!bar)return;if('Notification' in window&&Notification.permission!=='granted')bar.classList.remove('hidden');else bar.classList.add('hidden');}
-function requestNotificationPermission(){if(!('Notification' in window))return;Notification.requestPermission().then(p=>{if(p==='granted')document.getElementById('permissionBar')?.classList.add('hidden');});}
-function addPriceLevel(){alertConfig.levels.push({price:'',label:'',id:'lv'+Date.now()});saveAlertConfig();renderLevelsList();}
-function removePriceLevel(id){alertConfig.levels=alertConfig.levels.filter(l=>l.id!==id);saveAlertConfig();renderLevelsList();}
-function updateLevel(id,field,val){const lv=alertConfig.levels.find(l=>l.id===id);if(lv){lv[field]=val;saveAlertConfig();}}
-function renderLevelsList(){
-  const el=document.getElementById('levelsList');if(!el)return;el.innerHTML='';
-  (alertConfig.levels||[]).forEach(lv=>{
-    const row=document.createElement('div');row.style.cssText='display:flex;gap:5px;align-items:center;margin-bottom:5px';
-    row.innerHTML=`<input type="number" class="form-input-mono" placeholder="Price" value="${lv.price||''}" style="width:100px" onchange="updateLevel('${lv.id}','price',this.value)" step="0.25">
-      <input type="text" class="form-input-mono" placeholder="Label" value="${lv.label||''}" style="flex:1" onchange="updateLevel('${lv.id}','label',this.value)">
-      <button onclick="removePriceLevel('${lv.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>`;
-    el.appendChild(row);
-  });
-}
-// Sound engine
-const BUILT_IN_SOUNDS={
-  chime:(v)=>synth([[880,.15],[1100,.15],[1320,.2]],v,'sine'),
-  beep:(v)=>synth([[660,.1],[660,.1]],v,'square'),
-  soft:(v)=>synth([[440,.3]],v,'sine',true),
-  bell:(v)=>synth([[523,.05],[784,.05],[1047,.3]],v,'sine',true),
-  alert:(v)=>synth([[330,.08],[440,.08],[550,.08],[440,.08]],v,'sawtooth'),
-  blip:(v)=>synth([[800,.05],[600,.05]],v,'square'),
-  ding:(v)=>synth([[1047,.4]],v,'sine',true),
-  horn:(v)=>synth([[220,.1],[277,.1],[330,.15]],v,'sawtooth'),
-};
-function synth(notes,vol=.6,type='sine',fade=false){
-  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();let t=ctx.currentTime;
-    notes.forEach(([freq,dur])=>{const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=freq;osc.type=type;gain.gain.setValueAtTime(vol*.4,t);if(fade)gain.gain.exponentialRampToValueAtTime(.001,t+dur);else{gain.gain.setValueAtTime(vol*.4,t+dur*.7);gain.gain.exponentialRampToValueAtTime(.001,t+dur);}osc.start(t);osc.stop(t+dur+.05);t+=dur;});}catch(e){}
-}
-function playAlertSound(severity){
-  if(!alertConfig.sound)return;const vol=parseFloat(alertConfig.volume)||.6;
-  const customKey=severity+'Custom';
-  if(alertConfig.sounds[customKey]){try{const a=new Audio(alertConfig.sounds[customKey]);a.volume=vol;a.play();return;}catch(e){}}
-  const fn=BUILT_IN_SOUNDS[alertConfig.sounds[severity]||'beep'];if(fn)fn(vol);
-}
-const ALERT_TYPES=[{key:'critical',label:'Critical (FOMC/CPI/NFP)'},{key:'warning',label:'Warning (vol/gap)'},{key:'info',label:'Info (news)'},{key:'opportunity',label:'Opportunity (level)'}];
-function renderSoundPickers(){
-  const c=document.getElementById('soundPickerRows');if(!c)return;c.innerHTML='';
-  ALERT_TYPES.forEach(({key,label})=>{
-    const row=document.createElement('div');row.className='sound-row';
-    const hasCustom=!!alertConfig.sounds[key+'Custom'];
-    const opts=Object.keys(BUILT_IN_SOUNDS).map(s=>`<option value="${s}" ${alertConfig.sounds[key]===s?'selected':''}>${s}</option>`).join('');
-    row.innerHTML=`<span class="sound-label">${label}</span>
-      <select class="sound-sel" onchange="alertConfig.sounds['${key}']=this.value;saveAlertConfig()"><option value="">—</option>${opts}</select>
-      <button class="sound-prev" onclick="playAlertSound('${key}')">▶</button>
-      <button class="sound-upload" onclick="triggerSoundUpload('${key}')">${hasCustom?'✓ Custom':'Upload'}</button>
-      ${hasCustom?`<button onclick="clearCustomSound('${key}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer">✕</button>`:''}`;
-    c.appendChild(row);
-  });
-}
-function triggerSoundUpload(severity){
-  pendingSoundUploadFor=severity;
-  const inp=document.getElementById('soundUploadInput');if(inp){inp.value='';inp.click();}
-}
-document.getElementById('soundUploadInput').addEventListener('change',function(e){
-  const file=e.target.files[0];if(!file||!pendingSoundUploadFor)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{alertConfig.sounds[pendingSoundUploadFor+'Custom']=ev.target.result;saveAlertConfig();renderSoundPickers();setTimeout(()=>playAlertSound(pendingSoundUploadFor),200);};
-  reader.readAsDataURL(file);
-});
-function toggleAlerts(){
-  alertsActive=!alertsActive;
-  if(alertsActive){saveAlertConfig();runAlertCycle();alertPollTimer=setInterval(runAlertCycle,alertConfig.poll*1000);}
-  else{if(alertPollTimer){clearInterval(alertPollTimer);alertPollTimer=null;}}
-  updateAlertStatus();
-}
-function updateAlertStatus(){
-  const ms=document.getElementById('masterSwitch'),ml=document.getElementById('masterSwitchLabel');
-  if(ms){ms.classList.toggle('on',alertsActive);ms.classList.toggle('off',!alertsActive);}
-  if(ml)ml.textContent=alertsActive?'Alerts on':'Alerts off';
-  const dot=document.getElementById('alertStatusDot'),txt=document.getElementById('alertStatusText'),btn=document.getElementById('alertToggleBtn');
-  if(dot){dot.classList.toggle('active',alertsActive);dot.style.background=alertsActive?'var(--accent)':'var(--text3)';}
-  if(txt)txt.textContent=alertsActive?`Active · ${alertConfig.poll}s poll`:'Inactive';
-  if(btn){btn.textContent=alertsActive?'Stop monitoring':'Start monitoring';btn.style.color=alertsActive?'var(--red)':'var(--accent)';}
-}
-async function runAlertCycle(){await checkNewsAlerts();await checkPriceAlerts();}
-async function checkNewsAlerts(){
-  const HIGH=['cpi','consumer price','nfp','nonfarm','non-farm','fomc','federal open market','interest rate decision','gdp','gross domestic'];
-  const MED=['ppi','producer price','ism','retail sales','housing starts','durable goods','pce','jobless claims'];
-  try{
-    const PROXY='https://api.allorigins.win/get?url=';
-    const res=await fetch(PROXY+encodeURIComponent('https://feeds.reuters.com/reuters/businessNews'));
-    const data=await res.json();
-    const xml=new DOMParser().parseFromString(data.contents,'text/xml');
-    xml.querySelectorAll('item').forEach(item=>{
-      const title=((item.querySelector('title')||{}).textContent||'').toLowerCase();
-      const link=(item.querySelector('link')||{}).textContent||'';
-      const pubDate=(item.querySelector('pubDate')||{}).textContent||'';
-      if(Date.now()-new Date(pubDate)>30*60*1000)return;
-      const key=title.slice(0,60);if(firedAlertKeys.has('news_'+key))return;
-      let fire=false,sev='info',label='NEWS';
-      if(alertConfig.fomc&&(title.includes('fomc')||title.includes('federal open')||title.includes('powell'))){fire=true;sev='critical';label='FOMC';}
-      else if(alertConfig.cpi&&title.includes('cpi')){fire=true;sev='critical';label='CPI';}
-      else if(alertConfig.nfp&&(title.includes('nonfarm')||title.includes('jobs report'))){fire=true;sev='critical';label='NFP';}
-      else if(alertConfig.gdp&&title.includes('gdp')){fire=true;sev='warning';label='GDP';}
-      else if(alertConfig.medium&&MED.some(w=>title.includes(w))){fire=true;sev='info';label='NEWS';}
-      if(fire){firedAlertKeys.add('news_'+key);fireAlert({type:'news',severity:sev,label,title:`${label}: ${((item.querySelector('title')||{}).textContent||'').slice(0,80)}`,detail:`Breaking news detected. Check Market tab for context.`,link});}
-    });
-  }catch(e){}
-}
-async function checkPriceAlerts(){
-  try{
-    const PROXY='https://api.allorigins.win/get?url=';
-    const sym=alertConfig.instrument;
-    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=5m&range=1d`;
-    const res=await fetch(PROXY+encodeURIComponent(url));
-    const raw=await res.json();
-    const chart=JSON.parse(raw.contents);
-    const result=chart?.chart?.result?.[0];if(!result)return;
-    const meta=result.meta||{};
-    const cp=meta.regularMarketPrice,prev=meta.chartPreviousClose;
-    const quotes=result.indicators?.quote?.[0]||{};
-    const vols=(quotes.volume||[]).filter(Boolean);
-    const cv=vols[vols.length-1],avgV=vols.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vols.length-1,1);
-    if(!cp)return;
-    priceHistory.push({price:cp,time:Date.now()});if(priceHistory.length>12)priceHistory.shift();
-    if(alertConfig.vol&&priceHistory.length>=5&&lastPrice){
-      const op=priceHistory[Math.max(0,priceHistory.length-5)].price;
-      const movePct=Math.abs((cp-op)/op*100);
-      if(movePct>=alertConfig.volthresh){const key='vol_'+Math.floor(Date.now()/300000);if(!firedAlertKeys.has(key)){firedAlertKeys.add(key);fireAlert({type:'volatility',severity:'warning',label:'VOLATILITY',title:`Volatility spike — ${sym.replace('=F','')} ${cp>op?'↑':'↓'} ${movePct.toFixed(2)}%`,detail:`Price moved ${movePct.toFixed(2)}% in ~5 minutes (${op.toFixed(2)} → ${cp.toFixed(2)}).`});}}
-    }
-    if(alertConfig.volspike&&cv&&avgV>0&&cv/avgV>=2){const key='volspike_'+Math.floor(Date.now()/300000);if(!firedAlertKeys.has(key)){firedAlertKeys.add(key);fireAlert({type:'volume',severity:'warning',label:'VOLUME',title:`Volume spike — ${sym.replace('=F','')} ${(cv/avgV).toFixed(1)}x average`,detail:`Current bar volume is ${(cv/avgV).toFixed(1)}x the daily average.`});}}
-    if(alertConfig.gap&&prev&&cp){const gapPct=Math.abs((cp-prev)/prev*100);const now=new Date();const isPre=now.getHours()<9||(now.getHours()===9&&now.getMinutes()<30);if(isPre&&gapPct>=alertConfig.gapthresh){const key='gap_'+now.toDateString();if(!firedAlertKeys.has(key)){firedAlertKeys.add(key);fireAlert({type:'gap',severity:'warning',label:'GAP',title:`Pre-market ${cp>prev?'gap up':'gap down'} — ${gapPct.toFixed(2)}%`,detail:`${sym.replace('=F','')} ${cp>prev?'gapped up':'gapped down'} ${gapPct.toFixed(2)}% from prior close.`});}}}
-    if(cp){const instr=INSTRUMENTS[sym.replace('=F','').replace('-USD','')]||INSTRUMENTS['MNQ'];const thresh=(alertConfig.levelthresh||5)*(instr?.tickSize||.25);(alertConfig.levels||[]).forEach(lv=>{if(!lv.price)return;const lvP=parseFloat(lv.price);if(isNaN(lvP))return;if(Math.abs(cp-lvP)<=thresh){const key='lv_'+lv.id+'_'+Math.floor(Date.now()/120000);if(!firedAlertKeys.has(key)){firedAlertKeys.add(key);fireAlert({type:'level',severity:'opportunity',label:'LEVEL',title:`Price near ${lv.label||'key level'} (${lvP})`,detail:`${sym.replace('=F','')} is ${Math.abs(cp-lvP).toFixed(2)} pts from your level at ${lvP}.`});}}})} 
-    lastPrice=cp;
-  }catch(e){}
-}
-function fireAlert(alert){
-  const entry={id:'al'+Date.now(),time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),recommendation:null,recLoading:false,...alert};
-  alertLog.unshift(entry);if(alertLog.length>50)alertLog.pop();
-  renderAlertLog();updateAlertBadge();
-  if(alertConfig.sound)playAlertSound(alert.severity);
-  if(alertConfig.notif&&Notification.permission==='granted'){try{new Notification(`TradeLog: ${alert.label}`,{body:alert.title});}catch(e){}}
-  if(alertConfig.autorec)setTimeout(()=>generateAlertRec(entry.id),800);
-}
-function updateAlertBadge(){const b=document.getElementById('alertBadge');if(!b)return;const u=alertLog.filter(a=>!a.read).length;b.style.display=u>0?'inline':'none';if(u>0)b.textContent=u;}
-function renderAlertLog(){
-  const el=document.getElementById('alertLog');if(!el)return;
-  if(alertLog.length===0){el.innerHTML='<div class="empty-state">No alerts yet — start monitoring</div>';return;}
   el.innerHTML='';
   const bgColors={critical:'rgba(255,85,85,.2)',warning:'rgba(255,179,71,.2)',info:'rgba(85,153,255,.2)',opportunity:'rgba(0,229,160,.15)'};
   const textColors={critical:'var(--red)',warning:'var(--amber)',info:'var(--blue)',opportunity:'var(--accent)'};
   alertLog.forEach(a=>{
-    const card=document.createElement('div');card.className=`alert-card ${a.severity||'info'}`;
+    const card=document.createElement('div');card.className='alert-card ' + (a.severity||'info');
     const bg=bgColors[a.severity]||bgColors.info,tc=textColors[a.severity]||textColors.info;
     card.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
@@ -9241,4 +9041,8 @@ window.switchTab = function(tab) {
   </div>
 </div>
 </body>
-</html>
+</html
+  <!-- ══ MEMORY SECTION ══ -->
+  <!-- ══ ALERTS SECTION ══ -->
+  <!-- ══ RISK CALCULATOR SECTION ══ -->
+>
