@@ -1555,6 +1555,82 @@ tbody td{padding:6px 8px;vertical-align:middle}
       </div>
     </div>
   </div>
+
+  <!-- ══ MEMORY SECTION ══ -->
+  <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
+        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
+        <button onclick="confirmClearMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+      </div>
+      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- ══ ALERTS SECTION ══ -->
+  <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Alert Monitoring</h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="alertStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="alertStatusLabel" style="font-family:var(--mono);font-size:11px;color:var(--text3)">Off</span>
+          <button id="alertToggleSettingsBtn" onclick="toggleAlerts()" style="padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Start monitoring</button>
+        </div>
+      </div>
+      <div id="alertsSettingsMount"></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alert log</div>
+        <div style="display:flex;gap:7px;margin-bottom:7px">
+          <button onclick="clearAlertLog()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Clear log</button>
+        </div>
+        <div id="alertLogSettings" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RISK CALCULATOR SECTION ══ -->
+  <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator &amp; Instruments</div>
+    <div class="card">
+      <div class="card-hdr"><h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Quick Risk Calculator</h3></div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
+        <div class="form-group"><label class="section-label">Instrument</label><select class="form-input" id="sCalcInstr" onchange="runSettingsCalc()"></select></div>
+        <div class="form-group"><label class="section-label">Account</label><select class="form-input" id="sCalcAcct" onchange="runSettingsCalc()"></select></div>
+        <div class="form-group"><label class="section-label">Entry price</label><input type="number" class="form-input" id="sCalcEntry" placeholder="e.g. 21500" step="0.25" oninput="runSettingsCalc()"></div>
+        <div class="form-group"><label class="section-label">Stop (ticks)</label><input type="number" class="form-input" id="sCalcStopTicks" placeholder="e.g. 10" min="1" oninput="runSettingsCalc()"></div>
+        <div class="form-group"><label class="section-label">Contracts</label><input type="number" class="form-input" id="sCalcContracts" placeholder="1" min="1" value="1" oninput="runSettingsCalc()"></div>
+      </div>
+      <div id="sCalcResult" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Instrument Reference</h3>
+        <button onclick="openAddInstrModal()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">+ Add</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--bg3)">
+          <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Symbol</th>
+          <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Name</th>
+          <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Tick size</th>
+          <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">$/tick</th>
+          <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Exchange</th>
+          <th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>
+        </tr></thead>
+        <tbody id="instrTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div><!-- /content -->
 </div><!-- /main -->
 
@@ -10569,100 +10645,6 @@ function detectTargetAction(from, to, direction) {
     </div>
   </div>
 </div>
-
-
-
-  <!-- ══ MEMORY SECTION ══ -->
-  <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
-        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
-        <button onclick="confirmClearMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
-      </div>
-      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
-    </div>
-  </div>
-
-  <!-- ══ ALERTS SECTION ══ -->
-  <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Alert Monitoring</h3>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div id="alertStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-          <span id="alertStatusLabel" style="font-family:var(--mono);font-size:11px;color:var(--text3)">Off</span>
-          <button id="alertToggleSettingsBtn" onclick="toggleAlerts()" style="padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);transition:all .2s">Start monitoring</button>
-        </div>
-      </div>
-      <div id="alertsSettingsMount"></div>
-      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alert log</div>
-        <div style="display:flex;gap:7px;margin-bottom:7px">
-          <button onclick="clearAlertLog()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Clear log</button>
-        </div>
-        <div id="alertLogSettings" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
-          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet — start monitoring to watch for events.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ RISK CALCULATOR SECTION ══ -->
-  <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator &amp; Instruments</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Quick Risk Calculator</h3>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
-        <div class="form-group"><label class="section-label">Instrument</label>
-          <select class="form-input" id="sCalcInstr" onchange="runSettingsCalc()"></select>
-        </div>
-        <div class="form-group"><label class="section-label">Account</label>
-          <select class="form-input" id="sCalcAcct" onchange="runSettingsCalc()"></select>
-        </div>
-        <div class="form-group"><label class="section-label">Entry price</label>
-          <input type="number" class="form-input" id="sCalcEntry" placeholder="e.g. 21500" step="0.25" oninput="runSettingsCalc()">
-        </div>
-        <div class="form-group"><label class="section-label">Stop (ticks)</label>
-          <input type="number" class="form-input" id="sCalcStopTicks" placeholder="e.g. 10" min="1" oninput="runSettingsCalc()">
-        </div>
-        <div class="form-group"><label class="section-label">Contracts</label>
-          <input type="number" class="form-input" id="sCalcContracts" placeholder="1" min="1" value="1" oninput="runSettingsCalc()">
-        </div>
-      </div>
-      <div id="sCalcResult" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
-    </div>
-    <div class="card" style="margin-top:10px">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Instrument Reference</h3>
-        <button onclick="openAddInstrModal()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">+ Add</button>
-      </div>
-      <div id="instrTable" style="overflow:hidden">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="background:var(--bg3)">
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Symbol</th>
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Name</th>
-              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Tick size</th>
-              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">$/tick</th>
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Exchange</th>
-              <th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>
-            </tr>
-          </thead>
-          <tbody id="instrTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- Add/Edit Instrument Modal -->
   <div id="instrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
     <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.7)">
