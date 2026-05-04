@@ -444,16 +444,14 @@ tbody td{padding:6px 8px;vertical-align:middle}
 
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
-  <div class="logo">TRADE<span>/</span>LOG <span style="font-size:10px;color:var(--text3)">PRO</span></div>
+  <div class="logo">Trade<span style="color:var(--accent)"> Boy</span></div>
   <div class="topbar-acct" id="topbarAcctLabel">All Accounts</div>
   <div id="syncIndicator" style="font-size:10px;font-family:var(--mono);display:flex;align-items:center;gap:5px;color:var(--text3);white-space:nowrap">
     <div id="syncDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3)"></div>
     <span id="syncLabel">Connecting...</span>
   </div>
   <button id="signOutBtn" onclick="doSignOut()" style="display:none;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:2px 8px;transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">Sign out</button>
-  <div class="master-switch off" id="masterSwitch" onclick="toggleAlerts()" title="Toggle alert monitoring">
-    <div class="ms-pip"></div><span id="masterSwitchLabel">Alerts off</span>
-  </div>
+
   <div class="tabs">
     <button class="tab active" onclick="switchTab('plan')" data-tab="plan" id="tab-btn-plan">📋 Plan</button>
     <button class="tab" onclick="switchTab('trade')" data-tab="trade" id="tab-btn-trade">⚡ Trade</button>
@@ -520,25 +518,33 @@ tbody td{padding:6px 8px;vertical-align:middle}
     </div>
   </div>
 
-  <!-- Nav panel — quick links to all tabs -->
+  <!-- Nav panel — quick access within each tab -->
   <div class="sb-mode-panel" id="sbmp-nav">
     <div style="display:flex;flex-direction:column;gap:2px">
-      <button onclick="switchTab('journal')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📋 Journal</button>
-      <button onclick="switchTab('plan')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📅 Daily Plan</button>
-      <button onclick="switchTab('replay')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">⏪ Session Replay</button>
-      <button onclick="switchTab('performance')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📈 Performance</button>
-      <button onclick="switchTab('screenshots')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📷 Screenshots</button>
-      <button onclick="switchTab('alerts')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">🔔 Alerts</button>
-      <button onclick="switchTab('calculator')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">🧮 Risk Calc</button>
-      <button onclick="switchTab('market')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📰 Market</button>
-      <button onclick="switchTab('coach')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">🤖 AI Coach</button>
-      <button onclick="switchTab('settings')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">⚙️ Settings</button>
-      <button onclick="switchTab('memory')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">🧠 Memory</button>
-      <button onclick="switchTab('lab')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">⚗️ Strategy Lab</button>
-      <button onclick="switchTab('pretrade')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--blue);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">✅ Pre-trade</button>
-      <button onclick="switchTab('rules')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">📋 My Rules</button>
-      <button onclick="switchTab('focus')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">👁 Focus Log</button>
-      <button onclick="openWeeklyReview()" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--purple);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">🗓 Weekly Review</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">📋 Plan</div>
+      <button onclick="switchTab('plan');setTimeout(()=>document.getElementById('planChatInput')?.focus(),200)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Morning briefing</button>
+      <button onclick="switchTab('plan');setTimeout(()=>document.getElementById('planDate')?.focus(),200)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Session plan</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">⚡ Trade</div>
+      <button onclick="switchTab('trade')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Pre-trade checklist</button>
+      <button onclick="switchTab('trade');setTimeout(()=>document.getElementById('postTradeNotes')?.focus(),200)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Post-trade capture</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">📖 Journal</div>
+      <button onclick="switchTab('journal')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Trade table</button>
+      <button onclick="switchTab('journal');setTimeout(openWeeklyReview,300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--purple);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Weekly review</button>
+      <button onclick="switchTab('journal');setTimeout(openSimilarityFinder,300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Similarity finder</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">📊 Performance</div>
+      <button onclick="switchTab('performance')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Overview</button>
+      <button onclick="switchTab('performance');setTimeout(()=>showPerfPanel('conditions',document.querySelector('.pn-btn:nth-child(2)')),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Conditions</button>
+      <button onclick="switchTab('performance');setTimeout(()=>showPerfPanel('behavioral',null),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Behavioral</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">⚗️ Strategy</div>
+      <button onclick="switchTab('strategy')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Strategy builder</button>
+      <button onclick="switchTab('strategy');setTimeout(()=>document.getElementById('stratLabCard')?.scrollIntoView(),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Strategy lab</button>
+      <button onclick="switchTab('strategy');setTimeout(()=>document.getElementById('personalRulesList')?.scrollIntoView(),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Personal rules</button>
+      <button onclick="switchTab('strategy');setTimeout(()=>openFocusModal(),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Focus log</button>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:3px 4px;margin-top:4px">⚙️ Settings</div>
+      <button onclick="switchTab('settings')" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Accounts</button>
+      <button onclick="switchTab('settings');setTimeout(()=>document.getElementById('alertsSection')?.scrollIntoView({behavior:'smooth'}),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Alerts</button>
+      <button onclick="switchTab('settings');setTimeout(()=>document.getElementById('memorySection')?.scrollIntoView({behavior:'smooth'}),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Memory</button>
+      <button onclick="switchTab('settings');setTimeout(()=>document.getElementById('riskCalcSection')?.scrollIntoView({behavior:'smooth'}),300)" style="text-align:left;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);padding:5px 8px;font-family:var(--mono);font-size:11px;transition:all .12s">Risk calculator</button>
     </div>
   </div>
 </div>
@@ -936,7 +942,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
   <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;min-height:0;flex:1">
 
     <!-- LEFT: Morning briefing -->
-    <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+    <div style="display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto">
       <!-- Date + strategies for today -->
       <div class="card" style="flex-shrink:0">
         <div class="card-hdr">
@@ -1001,7 +1007,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
       </div>
 
       <!-- AI morning briefing chat -->
-      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:200px">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:260px;overflow:hidden">
         <div class="card-hdr" style="flex-shrink:0">
           <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.1em">AI Morning Briefing</h3>
           <button class="action-btn" onclick="clearPlanChat()">Clear</button>
@@ -1513,6 +1519,52 @@ tbody td{padding:6px 8px;vertical-align:middle}
     </div>
   </div>
 </div>
+
+  <!-- ══ MEMORY SECTION ══ -->
+  <div id="memorySection" style="scroll-margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🧠 Coaching Memory</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
+        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">AI coaching insights are saved here automatically and injected into future sessions so the coach remembers your journey.</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
+        <button onclick="clearAllMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+      </div>
+      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- ══ ALERTS SECTION ══ -->
+  <div id="alertsSection" style="scroll-margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🔔 Alerts &amp; Monitoring</div>
+    <div id="alertsSettingsInner"></div>
+  </div>
+
+  <!-- ══ RISK CALCULATOR SECTION ══ -->
+  <div id="riskCalcSection" style="scroll-margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">🧮 Risk Calculator</div>
+    <div class="card">
+      <div id="riskCalcInner"></div>
+    </div>
+  </div>
+
+  <!-- ══ MARKET & NEWS ══ -->
+  <div id="marketSection" style="scroll-margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">📰 Market &amp; News</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text2);line-height:1.5">The market chart and live news feed are available in the <strong style="color:var(--accent)">📋 Plan tab</strong> — news with AI insights appears in the right column, and updates automatically when you open the tab each morning.</div>
+    </div>
+  </div>
+
+  <!-- ══ SESSION REPLAY ══ -->
+  <div id="sessionReplaySection" style="scroll-margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:14px 0 8px;border-top:1px solid var(--border);margin-top:4px">⏪ Session Replay &amp; Screenshots</div>
+    <div id="replaySettingsInner"></div>
+  </div>
+
 
 
 <!-- TRADE MODAL -->
@@ -2232,7 +2284,28 @@ function switchTab(tab){
   if(tab==='replay')initReplayTab();
   if(tab==='screenshots')renderStagingGrid();
   if(tab==='alerts'){initAlertsTab();}
-  if(tab==='settings'){renderAccountManager();renderStratManager();renderEvolLog();populateEvolSelect();}
+  if(tab==='settings'){
+    renderAccountManager();renderStratManager();renderEvolLog();populateEvolSelect();
+    renderMemoryTab();
+    // Render alerts settings inline
+    const alertsInner = document.getElementById('alertsSettingsInner');
+    if(alertsInner && !alertsInner.dataset.rendered) {
+      const alertsTab = document.getElementById('tab-alerts');
+      if(alertsTab) { alertsInner.innerHTML = alertsTab.innerHTML; alertsInner.dataset.rendered='1'; }
+    }
+    // Render risk calc inline
+    const riskInner = document.getElementById('riskCalcInner');
+    if(riskInner && !riskInner.dataset.rendered) {
+      const riskTab = document.getElementById('tab-calculator');
+      if(riskTab) { riskInner.innerHTML = riskTab.innerHTML; riskInner.dataset.rendered='1'; }
+    }
+    // Render replay inline
+    const replayInner = document.getElementById('replaySettingsInner');
+    if(replayInner && !replayInner.dataset.rendered) {
+      const replayTab = document.getElementById('tab-replay');
+      if(replayTab) { replayInner.innerHTML = replayTab.innerHTML; replayInner.dataset.rendered='1'; initReplayTab(); }
+    }
+  }
   if(tab==='memory')renderMemoryTab();
   if(tab==='lab')initStratLab();
   if(tab==='pretrade')renderPTCLog();
@@ -7375,69 +7448,82 @@ function setChatTab(tab) {
 
 // ── Drag to reposition ──
 (function() {
-  let dragging = false, startX, startY, startRight, startBottom, dragTarget;
-  document.addEventListener('mousedown', e => {
-    const header = document.getElementById('chatHeader');
-    const floatBtn = document.getElementById('chatFloatBtn');
-    const isHeader = header && header.contains(e.target);
-    const isFloatBtn = floatBtn && floatBtn === e.target;
-    if (!isHeader && !isFloatBtn) return;
-    const btn = e.target.closest('button');
-    if (btn && isHeader) return; // don't drag when clicking buttons in header
-    dragTarget = isFloatBtn ? 'float' : 'panel';
-    dragging = true;
-    startX = e.clientX; startY = e.clientY;
-    if (dragTarget === 'float') {
-      const floatBtn = document.getElementById('chatFloatBtn');
-      const rect = floatBtn.getBoundingClientRect();
-      startRight = window.innerWidth - rect.right;
-      startBottom = window.innerHeight - rect.bottom;
-      floatBtn.style.cursor = 'grabbing';
-    } else {
-      const panel = document.getElementById('chatPanel');
-      const rect = panel.getBoundingClientRect();
-      startRight = window.innerWidth - rect.right;
-      startBottom = window.innerHeight - rect.bottom;
-      header.style.cursor = 'grabbing';
-    }
+  let _drag = false, _sx, _sy, _sr, _sb, _dt;
+
+  function startDrag(e, target) {
+    if (e.button !== 0) return;
+    _drag = true; _dt = target;
+    _sx = e.clientX; _sy = e.clientY;
+    const el = target === 'float'
+      ? document.getElementById('chatFloatBtn')
+      : document.getElementById('chatPanel');
+    if (!el) { _drag = false; return; }
+    const r = el.getBoundingClientRect();
+    _sr = window.innerWidth - r.right;
+    _sb = window.innerHeight - r.bottom;
+    const cursor = target === 'float'
+      ? document.getElementById('chatFloatBtn')
+      : document.getElementById('chatHeader');
+    if (cursor) cursor.style.cursor = 'grabbing';
     e.preventDefault();
-  });
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
+  }
+
+  function onMove(e) {
+    if (!_drag) return;
+    const dx = e.clientX - _sx, dy = e.clientY - _sy;
+    const nr = Math.max(8, _sr - dx), nb = Math.max(8, _sb - dy);
+    const fb = document.getElementById('chatFloatBtn');
     const panel = document.getElementById('chatPanel');
-    const floatBtn = document.getElementById('chatFloatBtn');
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    const newRight = Math.max(8, startRight - dx);
-    const newBottom = Math.max(8, startBottom - dy);
-    if (dragTarget === 'float') {
-      // Dragging the float button — move it directly
-      floatBtn.style.right = newRight + 'px';
-      floatBtn.style.bottom = newBottom + 'px';
+    if (_dt === 'float') {
+      if (fb) { fb.style.right = nr + 'px'; fb.style.bottom = nb + 'px'; }
     } else {
-      // Dragging the panel header — move both panel and float btn
-      panel.style.right = newRight + 'px';
-      panel.style.bottom = newBottom + 'px';
-      const panelRect = panel.getBoundingClientRect();
-      floatBtn.style.right = newRight + 'px';
-      floatBtn.style.bottom = (window.innerHeight - panelRect.top + 10) + 'px';
+      if (panel) { panel.style.right = nr + 'px'; panel.style.bottom = nb + 'px'; }
+      if (fb && panel) {
+        fb.style.right = nr + 'px';
+        fb.style.bottom = (window.innerHeight - panel.getBoundingClientRect().top + 10) + 'px';
+      }
+    }
+  }
+
+  function endDrag(e) {
+    if (!_drag) return;
+    window._chatWasDragging = !!(e && (Math.abs(e.clientX - _sx) > 5 || Math.abs(e.clientY - _sy) > 5));
+    _drag = false; _dt = null;
+    const fb = document.getElementById('chatFloatBtn');
+    const hdr = document.getElementById('chatHeader');
+    if (fb) fb.style.cursor = 'grab';
+    if (hdr) hdr.style.cursor = 'grab';
+    setTimeout(() => { window._chatWasDragging = false; }, 200);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('mouseleave', endDrag);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && _drag) endDrag(null); });
+  // Visibility change (tab switch, minimize) also ends drag
+  document.addEventListener('visibilitychange', () => { if (_drag) endDrag(null); });
+
+  // Attach mousedown to float btn and header via DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', () => {
+    const fb = document.getElementById('chatFloatBtn');
+    const hdr = document.getElementById('chatHeader');
+    if (fb) {
+      fb.addEventListener('mousedown', e => {
+        if (e.target.closest('button') && e.target !== fb) return;
+        startDrag(e, 'float');
+      });
+      fb.addEventListener('click', e => {
+        if (window._chatWasDragging) { e.stopPropagation(); e.preventDefault(); }
+        else setChatSize('compact');
+      });
+    }
+    if (hdr) {
+      hdr.addEventListener('mousedown', e => {
+        if (e.target.closest('button')) return;
+        startDrag(e, 'panel');
+      });
     }
   });
-  function endDrag(e) {
-    if (!dragging) return;
-    window._chatWasDragging = e && (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4);
-    dragging = false;
-    dragTarget = null;
-    const header = document.getElementById('chatHeader');
-    const floatBtn = document.getElementById('chatFloatBtn');
-    if (header) header.style.cursor = 'grab';
-    if (floatBtn) floatBtn.style.cursor = 'grab';
-    setTimeout(() => { window._chatWasDragging = false; }, 100);
-  }
-  document.addEventListener('mouseup', endDrag);
-  // Also end drag if mouse leaves the window (prevents stuck state)
-  document.addEventListener('mouseleave', endDrag);
-  // Escape key also ends drag
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && dragging) endDrag(null); });
 })();
 
 // ── Onboarding checklist ──
@@ -8607,9 +8693,16 @@ async function runMarketInsights() {
   btn.disabled = true; btn.textContent = 'Analysing...';
   out.innerHTML = '<span style="color:var(--text3);font-family:var(--mono);font-size:11px">Reading news headlines<span class="loading-dots"></span></span>';
 
-  // Collect news headlines from the feed
-  const headlines = Array.from(document.querySelectorAll('#newsFeed .news-item .news-title, #newsFeed a, #newsFeed [class*="title"]'))
-    .map(el => el.textContent.trim()).filter(t => t.length > 20).slice(0, 15);
+  // Extract headlines: each news item is an <a> with divs: [source, headline, time]
+  // Get the second div inside each <a> (the headline text)
+  const headlines = Array.from(document.querySelectorAll('#newsFeed > a'))
+    .map(a => {
+      const divs = Array.from(a.querySelectorAll(':scope > div'));
+      // Second div is the headline, first is source name, third is time
+      return divs[1]?.textContent?.trim() || divs[0]?.textContent?.trim() || '';
+    })
+    .filter(t => t.length > 20)
+    .slice(0, 15);
 
   if (!headlines.length) {
     out.innerHTML = '<span style="color:var(--text3);font-family:var(--mono);font-size:11px">No news loaded yet. Click ↻ + AI to load news first.</span>';
@@ -9029,7 +9122,7 @@ window.switchTab = function(tab) {
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
 <!-- ── GUIDE AGENT FLOAT BUTTON ── -->
-<div id="chatFloatBtn" title="AI Guide &amp; Coach (drag to move)" style="position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(0,229,160,.4);z-index:300;user-select:none;flex-direction:column;gap:0" id="chatFloatBtn" onclick="if(!window._chatWasDragging)setChatSize('compact')">
+<div id="chatFloatBtn" title="AI Guide &amp; Coach (drag to move)" style="position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(0,229,160,.4);z-index:300;user-select:none;flex-direction:column;gap:0">
   <span style="font-size:20px">💬</span>
   <div id="chatNudgeDot" style="display:none;position:absolute;top:6px;right:6px;width:10px;height:10px;background:var(--red);border-radius:50%;border:2px solid var(--bg)"></div>
 </div>
@@ -9040,7 +9133,7 @@ window.switchTab = function(tab) {
   <div id="chatHeader" style="display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;cursor:grab;user-select:none">
     <div style="width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 5px var(--accent);flex-shrink:0" id="chatStatusDot"></div>
     <div style="flex:1;min-width:0">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:500">TRADE/LOG Guide &amp; Coach</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:500">Trade Boy · Guide &amp; Coach</div>
       <div style="font-family:var(--mono);font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="chatContextLine">Loading context...</div>
     </div>
     <!-- Size controls -->
@@ -9117,7 +9210,7 @@ window.switchTab = function(tab) {
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:36px 40px;width:360px;max-width:calc(100vw - 40px);box-shadow:0 16px 48px rgba(0,0,0,.7)">
     <!-- Logo -->
     <div style="text-align:center;margin-bottom:28px">
-      <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);letter-spacing:.08em">TRADE/LOG</div>
+      <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);letter-spacing:.08em">Trade Boy</div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">PRO · Secure sign in</div>
     </div>
     <!-- Form -->
