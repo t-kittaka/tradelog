@@ -889,6 +889,16 @@ tbody td{padding:6px 8px;vertical-align:middle}
     <p>Drop NinjaTrader CSV here or click to browse</p>
     <div class="iz-hint">Control Center → Trade Performance → Executions → Right-click → Export</div>
     <input type="file" id="csvFile" accept=".csv" onchange="handleFile(event)">
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);width:100%">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">⚡ Also import orders file to auto-detect stop/target adjustments</div>
+      <div id="ordersImportZone" style="border:1px dashed rgba(255,179,71,.4);border-radius:var(--radius);padding:10px 14px;cursor:pointer;text-align:center;background:rgba(255,179,71,.04)"
+        ondrop="handleOrdersDrop(event)" ondragover="event.preventDefault();this.style.borderColor='var(--amber)'" ondragleave="this.style.borderColor='rgba(255,179,71,.4)'"
+        onclick="document.getElementById('ordersFileInput').click()">
+        <div style="font-size:12px;color:var(--text2)">Drop NinjaTrader <strong>Orders</strong> CSV here · or click to browse</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:3px">NinjaTrader → Control Center → Orders tab → Right-click → Export</div>
+      </div>
+      <input type="file" id="ordersFileInput" accept=".csv" style="display:none" onchange="handleOrdersFile(event)">
+    </div>
   </div><!-- /importExpanded -->
   <div class="stats-grid" id="statsRow" style="display:none">
     <div class="stat-card"><div class="sc-label">Trades</div><div class="sc-val" id="st-total">0</div></div>
@@ -2316,6 +2326,9 @@ function openModal(idx){
   }
   if(td.aiResponse){document.getElementById('aiFeedbackOutput').style.display='block';document.getElementById('aiFeedbackText').textContent=td.aiResponse;}
   else document.getElementById('aiFeedbackOutput').style.display='none';
+  populatePTCLinkDropdown(t);
+  // Load stop/target adjustments
+  renderStopAdjustments(td);
   document.getElementById('modalOverlay').classList.remove('hidden');
 }
 
@@ -2456,7 +2469,8 @@ async function getAIFeedback(){
   const execStr=td.execRating?`${td.execRating}/5`:'not rated';
   const actualTicks2=t.entryPrice&&t.exitPrice?Math.round(Math.abs(t.exitPrice-t.entryPrice)/instr2.tickSize):0;
   const leftOn=td.mfe&&actualTicks2?Math.max(0,td.mfe-actualTicks2):null;
-  const prompt=`You are an expert futures trading coach reviewing a micro futures paper trade. 4% max risk rule.\n\nTRADE DETAILS:\n- ${t.direction} ${t.instrument} | Entry: ${t.entryPrice} | Exit: ${t.exitPrice} | Qty: ${t.qty}\n- Move: ${ticks} ticks | Duration: ${fmtDur(t.durationMins)} | P&L: $${t.pnl.toFixed(2)}\n- R-multiple: ${fmtR(t.rMultiple)} | Initial risk: $${td.initialRisk||'?'}\n- Slippage: ${slipStr} | Planned R:R: ${rrStr}\n- MAE (worst point): ${maeStr} | MFE (best point): ${mfeStr}${leftOn!==null?' | Left on table: '+leftOn+' ticks':''}\n- Pre-trade confidence: ${confStr}\n- Setup quality: ${setupStr} | Execution quality: ${execStr}\n- Pre-entry hypothesis: "${hypoStr}"\n- Market condition: ${condLabel} | Account type: ${acct?ACCT_TYPE_LABELS[acct.type]:'unknown'}\n${strat?`STRATEGY: ${strat.name}\nRules: ${strat.rules}\nChecklist:\n${checks}`:'No strategy assigned.'}\nPost-trade notes: ${td.notes||'None.'}\n\nProvide concise coaching feedback (6-8 sentences): (1) Did the pre-entry hypothesis match the outcome? (2) Were setup and execution scores justified — any gap between them? (3) MAE/MFE efficiency — did they exit too early or hold through too much noise? (4) Slippage impact if notable. (5) Strategy adherence and one concrete improvement for next time. Be direct, specific, and constructive.`
+  const prompt=`You are an expert futures trading coach reviewing a micro futures paper trade. 4% max risk rule.\n\nTRADE DETAILS:\n- ${t.direction} ${t.instrument} | Entry: ${t.entryPrice} | Exit: ${t.exitPrice} | Qty: ${t.qty}\n- Move: ${ticks} ticks | Duration: ${fmtDur(t.durationMins)} | P&L: $${t.pnl.toFixed(2)}\n- R-multiple: ${fmtR(t.rMultiple)} | Initial risk: $${td.initialRisk||'?'}\n- Slippage: ${slipStr} | Planned R:R: ${rrStr}\n- MAE (worst point): ${maeStr} | MFE (best point): ${mfeStr}${leftOn!==null?' | Left on table: '+leftOn+' ticks':''}\n- Pre-trade confidence: ${confStr}\n- Setup quality: ${setupStr} | Execution quality: ${execStr}\n- Pre-entry hypothesis: "${hypoStr}"\n- Market condition: ${condLabel} | Account type: ${acct?ACCT_TYPE_LABELS[acct.type]:'unknown'}\n${strat?`STRATEGY: ${strat.name}\nRules: ${strat.rules}\nChecklist:\n${checks}`:'No strategy assigned.'}\nPost-trade notes: ${td.notes||'None.'}
+${(()=>{const adjs=formatStopAdjustmentsForAI(td,t);return adjs?'\nSTOP/TARGET ADJUSTMENTS DURING TRADE:\n'+adjs:'';})()}\n\nProvide concise coaching feedback (6-8 sentences): (1) Did the pre-entry hypothesis match the outcome? (2) Were setup and execution scores justified — any gap between them? (3) MAE/MFE efficiency — did they exit too early or hold through too much noise? (4) Slippage impact if notable. (5) Strategy adherence and one concrete improvement for next time. Be direct, specific, and constructive.`
   try{
     const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL,max_tokens:800,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
@@ -9460,6 +9474,357 @@ window.clearPostTrade = function() {
 // Already handled via thoughtsFormatted field stored on entry
 // renderTradePTCLog can show it — hook into the display
 
+
+// ── Link PTC entry to trade review modal ──
+function populatePTCLinkDropdown(trade) {
+  const sel = document.getElementById('modalPTCLink');
+  if (!sel) return;
+  const td = tradeData[trade?.id] || {};
+  sel.innerHTML = '<option value="">— Not linked —</option>';
+  ptcLog.forEach(e => {
+    const localDate = new Date(e.timestamp).toLocaleDateString(undefined, {month:'numeric',day:'numeric'});
+    const localTime = new Date(e.timestamp).toLocaleTimeString(undefined, {hour:'2-digit',minute:'2-digit'});
+    const label = localDate + ' ' + localTime + ' — ' + e.dir + ' ' + e.instr + (e.stratName ? ' (' + e.stratName + ')' : '');
+    sel.innerHTML += '<option value="' + e.id + '">' + label + '</option>';
+  });
+
+  // Restore saved link
+  if (td.linkedPTCId) {
+    sel.value = td.linkedPTCId;
+    renderPTCPreview(td.linkedPTCId, false);
+    return;
+  }
+
+  // Auto-match: find PTC entry closest in time to trade entry, same direction+instrument
+  if (trade && ptcLog.length) {
+    const tradeTime = new Date(trade.entryTime).getTime();
+    let bestMatch = null, bestDiff = Infinity;
+    ptcLog.forEach(e => {
+      const ptcTime = new Date(e.timestamp).getTime();
+      const diff = Math.abs(tradeTime - ptcTime);
+      const sameInstr = e.instr === trade.instrument;
+      const sameDir = e.dir === trade.direction;
+      // Within 6 hours, same instrument and direction
+      if (diff < 6 * 3600000 && sameInstr && sameDir && diff < bestDiff) {
+        bestMatch = e; bestDiff = diff;
+      }
+    });
+    if (bestMatch) {
+      sel.value = bestMatch.id;
+      document.getElementById('modalPTCMatchHint').style.display = 'block';
+      renderPTCPreview(bestMatch.id, true);
+      // Auto-save the link
+      if (currentTradeIdx !== null) {
+        const t = trades[currentTradeIdx];
+        const tdRef = tradeData[t.id] = tradeData[t.id] || {};
+        tdRef.linkedPTCId = bestMatch.id;
+        // Pre-populate hypothesis if empty
+        const hypEl = document.getElementById('modalHypothesis');
+        if (hypEl && !hypEl.value && bestMatch.hypothesis) {
+          hypEl.value = bestMatch.hypothesis.slice(0, 500);
+          tdRef.hypothesis = hypEl.value;
+        }
+        // Pre-populate confidence
+        if (!tdRef.confidence && bestMatch.confidence) {
+          tdRef.confidence = bestMatch.confidence;
+          setConf(bestMatch.confidence);
+        }
+      }
+    } else {
+      document.getElementById('modalPTCMatchHint').style.display = 'none';
+    }
+  }
+}
+
+function applyPTCToModal() {
+  const sel = document.getElementById('modalPTCLink');
+  const ptcId = sel?.value;
+  document.getElementById('modalPTCMatchHint').style.display = 'none';
+
+  // Save the link choice
+  if (currentTradeIdx !== null) {
+    const t = trades[currentTradeIdx];
+    const td = tradeData[t.id] = tradeData[t.id] || {};
+    td.linkedPTCId = ptcId || null;
+    save();
+  }
+
+  if (!ptcId) {
+    document.getElementById('modalPTCPreview').style.display = 'none';
+    return;
+  }
+  renderPTCPreview(ptcId, false);
+
+  // Populate hypothesis and confidence from PTC entry
+  const entry = ptcLog.find(e => e.id === ptcId);
+  if (!entry) return;
+  const hypEl = document.getElementById('modalHypothesis');
+  if (hypEl && entry.hypothesis) {
+    hypEl.value = entry.hypothesis;
+    saveTradeData();
+  }
+  if (entry.confidence) setConf(entry.confidence);
+}
+
+function renderPTCPreview(ptcId, autoMatched) {
+  const preview = document.getElementById('modalPTCPreview');
+  if (!preview || !ptcId) return;
+  const entry = ptcLog.find(e => e.id === ptcId);
+  if (!entry) { preview.style.display = 'none'; return; }
+  const timeStr = new Date(entry.timestamp).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+  let html = '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px">' + timeStr;
+  if (entry.checkedItems?.length) html += ' · ' + entry.checkedItems.length + '/' + ((entry.checkedItems.length) + (entry.uncheckedItems?.length||0)) + ' checklist';
+  if (entry.confidence) html += ' · Conf: ' + ['','Low','Med','High'][entry.confidence];
+  html += '</div>';
+  if (entry.hypothesis) html += '<div style="margin-bottom:3px">' + entry.hypothesis.slice(0, 200) + (entry.hypothesis.length > 200 ? '…' : '') + '</div>';
+  if (entry.thoughtsFormatted) html += '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px;white-space:pre-wrap">' + entry.thoughtsFormatted + '</div>';
+  if (entry.postNotes) html += '<div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border);color:var(--text3)">' + entry.postNotes.slice(0, 150) + '</div>';
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+}
+
+
+// ══════════════════════════════════════════
+// STOP / TARGET ADJUSTMENT LOG
+// ══════════════════════════════════════════
+
+function addStopAdjustment() {
+  if (currentTradeIdx === null) return;
+  const t = trades[currentTradeIdx];
+  const td = tradeData[t.id] = tradeData[t.id] || {};
+  if (!td.stopAdjustments) td.stopAdjustments = [];
+  td.stopAdjustments.push({
+    id: 'adj_' + Date.now(),
+    type: 'stop',       // 'stop' | 'target'
+    action: 'tighten',  // 'tighten' | 'widen' | 'trail' | 'move'
+    from: null,
+    to: null,
+    reason: '',
+    ts: new Date().toISOString()
+  });
+  save();
+  renderStopAdjustments(td);
+}
+
+function removeStopAdjustment(adjId) {
+  if (currentTradeIdx === null) return;
+  const t = trades[currentTradeIdx];
+  const td = tradeData[t.id] = tradeData[t.id] || {};
+  td.stopAdjustments = (td.stopAdjustments || []).filter(a => a.id !== adjId);
+  save();
+  renderStopAdjustments(td);
+}
+
+function updateStopAdjustment(adjId, field, value) {
+  if (currentTradeIdx === null) return;
+  const t = trades[currentTradeIdx];
+  const td = tradeData[t.id] = tradeData[t.id] || {};
+  const adj = (td.stopAdjustments || []).find(a => a.id === adjId);
+  if (!adj) return;
+  adj[field] = field === 'from' || field === 'to' ? (parseFloat(value) || null) : value;
+  save();
+  // Re-render efficiency metrics when prices change
+  if (field === 'from' || field === 'to') renderStopAdjustmentInsights(td);
+}
+
+function renderStopAdjustments(td) {
+  const list = document.getElementById('stopAdjustmentList');
+  const empty = document.getElementById('stopAdjustmentEmpty');
+  if (!list) return;
+  const adjs = td.stopAdjustments || [];
+  if (empty) empty.style.display = adjs.length ? 'none' : 'block';
+
+  list.innerHTML = adjs.map(adj => {
+    const typeColor = adj.type === 'stop' ? 'var(--red)' : 'var(--accent)';
+    const actionLabels = {tighten: 'Tightened', widen: 'Widened', trail: 'Trailed', move: 'Moved'};
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${typeColor};border-radius:var(--radius);padding:8px 10px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <select onchange="updateStopAdjustment('${adj.id}','type',this.value)" style="font-family:var(--mono);font-size:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:2px 5px;border-radius:3px">
+          <option value="stop" ${adj.type==='stop'?'selected':''}>Stop</option>
+          <option value="target" ${adj.type==='target'?'selected':''}>Target</option>
+        </select>
+        <select onchange="updateStopAdjustment('${adj.id}','action',this.value)" style="font-family:var(--mono);font-size:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:2px 5px;border-radius:3px">
+          <option value="tighten" ${adj.action==='tighten'?'selected':''}>Tightened</option>
+          <option value="widen" ${adj.action==='widen'?'selected':''}>Widened</option>
+          <option value="trail" ${adj.action==='trail'?'selected':''}>Trailed</option>
+          <option value="move" ${adj.action==='move'?'selected':''}>Moved to B/E</option>
+        </select>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">From</span>
+        <input type="number" value="${adj.from||''}" placeholder="price" step="0.25" onchange="updateStopAdjustment('${adj.id}','from',this.value)" style="width:80px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:3px 5px;border-radius:3px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">→</span>
+        <input type="number" value="${adj.to||''}" placeholder="price" step="0.25" onchange="updateStopAdjustment('${adj.id}','to',this.value)" style="width:80px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:3px 5px;border-radius:3px">
+        <button onclick="removeStopAdjustment('${adj.id}')" style="margin-left:auto;background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0;flex-shrink:0">✕</button>
+      </div>
+      <input type="text" value="${adj.reason||''}" placeholder="Why? e.g. Price held support, locked in profit, trailing to stay in runner…" onchange="updateStopAdjustment('${adj.id}','reason',this.value)" style="width:100%;box-sizing:border-box;font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:4px 7px;border-radius:3px;font-family:var(--sans)">
+    </div>`;
+  }).join('');
+}
+
+function renderStopAdjustmentInsights(td) {
+  // Could add a summary of net risk change here in future
+}
+
+function formatStopAdjustmentsForAI(td, trade) {
+  const adjs = td.stopAdjustments || [];
+  if (!adjs.length) return null;
+  const instr = INSTRUMENTS[trade.instrument] || INSTRUMENTS['MNQ'];
+  return adjs.map((adj, i) => {
+    const label = (adj.type === 'stop' ? 'Stop' : 'Target') +
+      ' ' + ({tighten:'tightened',widen:'widened',trail:'trailed',move:'moved to B/E'}[adj.action] || adj.action);
+    let priceStr = '';
+    if (adj.from && adj.to) {
+      const ticks = Math.round(Math.abs(adj.to - adj.from) / instr.tickSize);
+      const dir = adj.to > adj.from ? '↑' : '↓';
+      priceStr = ` ${adj.from} → ${adj.to} (${dir}${ticks}t)`;
+    }
+    return `${i+1}. ${label}${priceStr}${adj.reason ? ': ' + adj.reason : ''}`;
+  }).join('\n');
+}
+
+
+// ══════════════════════════════════════════
+// ORDERS FILE IMPORT (Stop/Target Adjustments)
+// ══════════════════════════════════════════
+function handleOrdersDrop(e) {
+  e.preventDefault();
+  document.getElementById('ordersImportZone')?.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) processOrdersFile(f);
+}
+function handleOrdersFile(e) {
+  if (e.target.files[0]) processOrdersFile(e.target.files[0]);
+}
+function processOrdersFile(file) {
+  const r = new FileReader();
+  r.onload = e => parseOrdersCSV(e.target.result);
+  r.readAsText(file);
+}
+
+function parseOrdersCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) { alert('Orders CSV appears empty.'); return; }
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const fc = aliases => { for (const a of aliases) { const i = headers.findIndex(h => h.includes(a)); if (i !== -1) return i; } return -1; };
+
+  const cols = {
+    instrument: fc(['instrument','symbol']),
+    action:     fc(['action']),
+    type:       fc(['type']),
+    stop:       fc(['stop']),
+    limit:      fc(['limit']),
+    state:      fc(['state']),
+    name:       fc(['name']),
+    time:       fc(['time']),
+    avgPrice:   fc(['avg. price','avg price','average price','filled','fill price'])
+  };
+
+  // Parse all orders
+  const orders = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g,''));
+    if (vals.length < 3) continue;
+    const g = k => cols[k] !== -1 ? (vals[cols[k]] || '').trim() : '';
+    orders.push({
+      instrument: g('instrument').replace(/\s+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d{2,4}$/i,'').trim(),
+      action:  g('action'),
+      type:    g('type'),
+      stop:    parseFloat(g('stop')) || 0,
+      limit:   parseFloat(g('limit')) || 0,
+      state:   g('state'),
+      name:    g('name'),
+      time:    g('time'),
+      avgPrice: parseFloat(g('avgPrice')) || 0
+    });
+  }
+
+  // For each imported trade, find stop/target adjustments within its time window
+  let enriched = 0, adjTotal = 0;
+  trades.forEach(trade => {
+    const entryMs = new Date(trade.entryTime).getTime();
+    const exitMs  = new Date(trade.exitTime).getTime();
+    if (!entryMs || !exitMs) return;
+
+    // Find orders within this trade's lifespan, same instrument
+    const inWindow = orders.filter(o => {
+      const oMs = new Date(o.time).getTime();
+      return oMs >= entryMs && oMs <= exitMs && o.instrument === trade.instrument;
+    });
+
+    if (!inWindow.length) return;
+
+    // Build stop sequence — cancelled stops = adjustments, filled stop = final exit stop
+    const stopOrders   = inWindow.filter(o => o.name === 'Stop1');
+    const targetOrders = inWindow.filter(o => o.name === 'Target1');
+
+    const adjustments = [];
+
+    // Stop adjustments: each cancelled stop means it was moved
+    stopOrders.forEach((o, idx) => {
+      if (o.state === 'Cancelled') {
+        const nextStop = stopOrders[idx + 1];
+        adjustments.push({
+          id: 'adj_orders_' + trade.id + '_s' + idx,
+          type: 'stop',
+          action: detectStopAction(o.stop, nextStop?.stop, trade.direction),
+          from: o.stop || null,
+          to: nextStop?.stop || null,
+          reason: '(auto-detected from orders file)',
+          ts: o.time,
+          source: 'orders_import'
+        });
+      }
+    });
+
+    // Target adjustments: cancelled targets = target was moved
+    targetOrders.forEach((o, idx) => {
+      if (o.state === 'Cancelled') {
+        const nextTarget = targetOrders[idx + 1];
+        adjustments.push({
+          id: 'adj_orders_' + trade.id + '_t' + idx,
+          type: 'target',
+          action: detectTargetAction(o.limit, nextTarget?.limit, trade.direction),
+          from: o.limit || null,
+          to: nextTarget?.limit || null,
+          reason: '(auto-detected from orders file)',
+          ts: o.time,
+          source: 'orders_import'
+        });
+      }
+    });
+
+    if (adjustments.length) {
+      const td = tradeData[trade.id] = tradeData[trade.id] || {};
+      // Merge: keep any manually entered adjustments, add new ones from import
+      const existing = (td.stopAdjustments || []).filter(a => !a.source);
+      td.stopAdjustments = [...existing, ...adjustments];
+      enriched++;
+      adjTotal += adjustments.length;
+    }
+  });
+
+  save();
+  renderAll();
+  alert(`Orders import complete.\n${enriched} trades enriched with ${adjTotal} stop/target adjustments.\nOpen any trade Review to see them. You can edit the reason field for each one.`);
+}
+
+function detectStopAction(from, to, direction) {
+  if (!from || !to) return 'move';
+  const isLong = direction === 'Long';
+  // For long: stop moves up = tightening (protecting profit), down = widening
+  // For short: stop moves down = tightening, up = widening
+  const tightened = isLong ? to > from : to < from;
+  if (Math.abs(to - from) < 0.5) return 'move'; // breakeven-ish
+  return tightened ? 'tighten' : 'widen';
+}
+
+function detectTargetAction(from, to, direction) {
+  if (!from || !to) return 'move';
+  const isLong = direction === 'Long';
+  // Target extended in direction of trade = runner; reduced = cutting short
+  const extended = isLong ? to > from : to < from;
+  return extended ? 'move' : 'tighten'; // closest approximation
+}
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
@@ -9784,6 +10149,15 @@ window.clearPostTrade = function() {
             <div class="slt-derived">+ bad fill &nbsp;·&nbsp; − good fill</div>
           </div>
         </div>
+        <!-- Stop/Target adjustment log -->
+        <div style="margin-top:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Stop / target adjustments during trade</div>
+            <button onclick="addStopAdjustment()" style="padding:2px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">+ Add adjustment</button>
+          </div>
+          <div id="stopAdjustmentList" style="display:flex;flex-direction:column;gap:5px"></div>
+          <div id="stopAdjustmentEmpty" style="font-size:11px;font-family:var(--mono);color:var(--text3);padding:6px 0">No adjustments logged — add any stop moves, target changes, or trailing stops here.</div>
+        </div>
       </div>
       <!-- MAE / MFE / INITIAL RISK / LEFT ON TABLE -->
       <div>
@@ -9810,6 +10184,17 @@ window.clearPostTrade = function() {
             <div class="slt-derived">MFE minus actual move</div>
           </div>
         </div>
+      </div>
+      <!-- LINK TO PTC LOG ENTRY -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="section-label" style="margin:0;flex-shrink:0">Link to pre-trade entry</div>
+          <select id="modalPTCLink" onchange="applyPTCToModal()" style="flex:1;min-width:180px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:4px 6px;border-radius:var(--radius)">
+            <option value="">— Not linked —</option>
+          </select>
+          <div id="modalPTCMatchHint" style="font-size:10px;font-family:var(--mono);color:var(--accent);display:none">✓ Auto-matched by time</div>
+        </div>
+        <div id="modalPTCPreview" style="display:none;margin-top:8px;font-size:11px;color:var(--text2);font-style:italic;line-height:1.5;border-left:3px solid var(--accent);padding-left:8px"></div>
       </div>
       <!-- CONFIDENCE + HYPOTHESIS -->
       <div class="two-col">
