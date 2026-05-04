@@ -1019,28 +1019,27 @@ tbody td{padding:6px 8px;vertical-align:middle}
       </div>
     </div>
 
-    <!-- RIGHT: Market + news -->
+    <!-- RIGHT: AI insights + news -->
     <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+      <!-- AI Market Insights -->
       <div class="card" style="flex-shrink:0">
         <div class="card-hdr">
-          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Market</h3>
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.1em">⚡ AI Market Insights</h3>
+          <button onclick="runMarketInsights()" id="marketInsightsBtn" style="padding:2px 8px;font-size:10px;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);cursor:pointer;border-radius:var(--radius)">Analyse →</button>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap">
-          <div style="position:relative;flex:1;min-width:120px">
-            <input type="text" id="planChartSymbol" class="form-input-mono" placeholder="SPY, QQQ, GC1!..." style="width:100%" onkeydown="if(event.key==='Enter')loadPlanChart()" oninput="chartSymbolSearch(this.value)" onfocus="chartSymbolSearch(this.value)" onblur="setTimeout(()=>document.getElementById('chartSuggestions2').style.display='none',200)">
-            <div id="chartSuggestions2" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);z-index:100;max-height:160px;overflow-y:auto;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
-          </div>
-          <select class="form-input-mono" id="planChartInterval" style="width:65px" onchange="loadPlanChart()">
-            <option value="15">15m</option><option value="30" selected>30m</option><option value="60">1h</option><option value="240">4h</option><option value="D">1D</option>
-          </select>
-          <button onclick="loadPlanChart()" style="padding:4px 10px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-size:11px;font-family:var(--mono);font-weight:500">Go</button>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:8px">Auto-analyses current news for market trajectory, affected instruments &amp; volatility warnings</div>
+        <div id="marketInsightsOutput" style="font-size:12px;color:var(--text2);line-height:1.7;min-height:60px">
+          <span style="color:var(--text3);font-family:var(--mono)">Click Analyse to get AI insights based on current news headlines.</span>
         </div>
-        <div id="planChartWrap" style="height:200px;background:#000;border-radius:var(--radius);overflow:hidden"></div>
+        <div id="marketInsightsMeta" style="display:none;margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--text3)"></div>
       </div>
+      <!-- Market News -->
       <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="card-hdr" style="flex-shrink:0">
           <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Market News</h3>
-          <button onclick="loadNews()" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">↻</button>
+          <div style="display:flex;gap:5px">
+            <button onclick="loadNews();setTimeout(runMarketInsights,3000)" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)" title="Refresh news and re-analyse">↻ + AI</button>
+          </div>
         </div>
         <div id="newsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
           <div class="empty-state">Loading<span class="loading-dots"></span></div>
@@ -7423,16 +7422,22 @@ function setChatTab(tab) {
       floatBtn.style.bottom = (window.innerHeight - panelRect.top + 10) + 'px';
     }
   });
-  document.addEventListener('mouseup', () => {
+  function endDrag(e) {
     if (!dragging) return;
-    window._chatWasDragging = (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4);
+    window._chatWasDragging = e && (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4);
     dragging = false;
+    dragTarget = null;
     const header = document.getElementById('chatHeader');
     const floatBtn = document.getElementById('chatFloatBtn');
     if (header) header.style.cursor = 'grab';
     if (floatBtn) floatBtn.style.cursor = 'grab';
     setTimeout(() => { window._chatWasDragging = false; }, 100);
-  });
+  }
+  document.addEventListener('mouseup', endDrag);
+  // Also end drag if mouse leaves the window (prevents stuck state)
+  document.addEventListener('mouseleave', endDrag);
+  // Escape key also ends drag
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && dragging) endDrag(null); });
 })();
 
 // ── Onboarding checklist ──
@@ -8584,6 +8589,440 @@ const _origInitApp = window.initApp;
 window.initApp = async function() {
   await _origInitApp();
   switchTab('plan');
+};
+
+
+// ══════════════════════════════════════════
+// SESSION F — AI INSIGHTS, ALERT TOASTS, SMART CHAT
+// ══════════════════════════════════════════
+
+// ── 1. AI MARKET INSIGHTS ──────────────────────────────
+async function runMarketInsights() {
+  const btn = document.getElementById('marketInsightsBtn');
+  const out = document.getElementById('marketInsightsOutput');
+  const meta = document.getElementById('marketInsightsMeta');
+  if (!btn || !out) return;
+  if (!ANTHROPIC_KEY) { out.innerHTML = '<span style="color:var(--red);font-family:var(--mono);font-size:11px">No API key set — go to Settings to add your Anthropic key.</span>'; return; }
+
+  btn.disabled = true; btn.textContent = 'Analysing...';
+  out.innerHTML = '<span style="color:var(--text3);font-family:var(--mono);font-size:11px">Reading news headlines<span class="loading-dots"></span></span>';
+
+  // Collect news headlines from the feed
+  const headlines = Array.from(document.querySelectorAll('#newsFeed .news-item .news-title, #newsFeed a, #newsFeed [class*="title"]'))
+    .map(el => el.textContent.trim()).filter(t => t.length > 20).slice(0, 15);
+
+  if (!headlines.length) {
+    out.innerHTML = '<span style="color:var(--text3);font-family:var(--mono);font-size:11px">No news loaded yet. Click ↻ + AI to load news first.</span>';
+    btn.disabled = false; btn.textContent = 'Analyse →';
+    return;
+  }
+
+  // Get current plan context
+  const today = new Date().toISOString().split('T')[0];
+  const plan = dailyPlans[today] || {};
+  const traderInstruments = strategies.length ? strategies.map(s => s.name).join(', ') : 'MNQ, MES (micro futures)';
+
+  const prompt = `You are a professional futures market analyst. Analyse these current market news headlines and provide concise, actionable insights for a futures trader.
+
+CURRENT NEWS HEADLINES:
+    const headlineList = headlines.map((h, idx) => (idx+1) + '. ' + h).join('\n');
+')}
+
+TRADER'S FOCUS: ${traderInstruments}
+TODAY'S CONDITION: ${CONDITION_LABELS[plan.condition] || 'not set'}
+
+Provide a structured analysis in exactly this format (use plain text, no markdown):
+
+MARKET TRAJECTORY
+2-3 sentences on overall market direction and sentiment from these headlines.
+
+INSTRUMENTS TO WATCH
+List 2-4 specific instruments likely affected and why (brief).
+
+VOLATILITY WINDOWS
+Specific times or events today that may cause elevated volatility or require caution.
+
+TRADING IMPLICATIONS
+1-2 sentences: what this means for a micro futures trader right now.
+
+Keep each section tight — max 3 sentences. Be specific about price action implications.`;
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 500, messages: [{ role: 'user', content: prompt }] }) });
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || 'No response.';
+
+    // Format the response with section headers highlighted
+    const formatted = text
+      .replace(/^(MARKET TRAJECTORY|INSTRUMENTS TO WATCH|VOLATILITY WINDOWS|TRADING IMPLICATIONS)/gm,
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-top:10px;margin-bottom:3px">$1</div>')
+      .replace(/\\n\\n/g, '<br><br>')
+      .replace(/\\n/g, '<br>');
+
+
+
+
+
+    out.innerHTML = formatted;
+    if (meta) {
+      meta.style.display = 'block';
+      meta.textContent = `Based on ${headlines.length} headlines · ${new Date().toLocaleTimeString()}`;
+    }
+
+    // Store in today's plan
+    if (!dailyPlans[today]) dailyPlans[today] = {};
+    dailyPlans[today].marketInsights = text;
+    dailyPlans[today].marketInsightsTime = new Date().toISOString();
+    save();
+
+  } catch(e) {
+    out.innerHTML = '<span style="color:var(--red);font-family:var(--mono);font-size:11px">Error connecting to AI. Check your API key in Settings.</span>';
+  }
+  btn.disabled = false; btn.textContent = 'Analyse →';
+}
+
+// Auto-run insights when news loads (debounced)
+const _origLoadNews = window.loadNews;
+window.loadNews = async function() {
+  await _origLoadNews();
+  // Auto-run insights 3s after news loads if on Plan tab
+  if (document.querySelector('.tab-content.active')?.id === 'tab-plan') {
+    setTimeout(() => {
+      if (document.getElementById('newsFeed')?.children.length > 1) runMarketInsights();
+    }, 3000);
+  }
+};
+
+// ── 2. ALERT TOAST NOTIFICATIONS ───────────────────────
+let alertToastQueue = [];
+let alertToastActive = false;
+
+function showAlertToast(message, type = 'info', alertData = null) {
+  // Add to queue
+  alertToastQueue.push({ message, type, alertData, id: 'toast_' + Date.now() });
+  if (!alertToastActive) processToastQueue();
+}
+
+function processToastQueue() {
+  if (!alertToastQueue.length) { alertToastActive = false; return; }
+  alertToastActive = true;
+  const toast = alertToastQueue.shift();
+  renderToast(toast);
+}
+
+function renderToast(toast) {
+  // Remove any existing toast with same id
+  document.getElementById(toast.id)?.remove();
+
+  const colors = {
+    alert: { bg: 'rgba(255,85,85,.15)', border: 'rgba(255,85,85,.4)', dot: 'var(--red)', icon: '🔔' },
+    news: { bg: 'rgba(255,179,71,.12)', border: 'rgba(255,179,71,.35)', dot: 'var(--amber)', icon: '📰' },
+    price: { bg: 'rgba(0,229,160,.1)', border: 'rgba(0,229,160,.3)', dot: 'var(--accent)', icon: '📈' },
+    info: { bg: 'rgba(85,153,255,.1)', border: 'rgba(85,153,255,.3)', dot: 'var(--blue)', icon: 'ℹ' },
+  };
+  const c = colors[type] || colors.info;
+
+  const div = document.createElement('div');
+  div.id = toast.id;
+  div.style.cssText = `position:fixed;bottom:${84 + alertToastQueue.length * 10}px;left:22px;background:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:10px 14px;z-index:400;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideInLeft .25s ease;display:flex;flex-direction:column;gap:6px`;
+
+  div.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div style="font-size:16px;flex-shrink:0">${c.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--mono);font-size:10px;color:${c.dot};text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Alert</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.4;word-break:break-word">${toast.message}</div>
+      </div>
+      <button onclick="dismissToast('${toast.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0;flex-shrink:0;line-height:1;margin-left:4px">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      ${toast.alertData ? `<button onclick="expandToast('${toast.id}')" style="padding:3px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid ${c.border};color:${c.dot};cursor:pointer;border-radius:var(--radius)">Details →</button>` : ''}
+      <button onclick="dismissToast('${toast.id}')" style="padding:3px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Dismiss</button>
+    </div>`;
+
+  document.body.appendChild(div);
+
+  // Auto-dismiss after 8 seconds
+  const timer = setTimeout(() => dismissToast(toast.id), 8000);
+  div._dismissTimer = timer;
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  clearTimeout(el._dismissTimer);
+  el.style.animation = 'slideOutLeft .2s ease forwards';
+  setTimeout(() => { el.remove(); processToastQueue(); }, 200);
+}
+
+function expandToast(id) {
+  // Navigate to alerts tab to show details
+  dismissToast(id);
+  switchTab('settings'); // alerts are in settings now
+}
+
+// Add toast animations to CSS
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `
+  @keyframes slideInLeft { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOutLeft { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-120%); opacity: 0; } }
+`;
+document.head.appendChild(toastStyle);
+
+// Hook into existing alert system to show toasts
+const _origFireAlert = window.fireAlert;
+window.fireAlert = function(msg, type, data) {
+  if (_origFireAlert) _origFireAlert(msg, type, data);
+  showAlertToast(msg, type || 'alert', data);
+};
+
+// Hook into alert polling to intercept alerts
+const _origHandleAlertFire = window.handleAlertFire;
+window.handleAlertFire = function(msg, type) {
+  if (_origHandleAlertFire) _origHandleAlertFire(msg, type);
+  showAlertToast(msg, type || 'alert');
+};
+
+// Override triggerAlert if it exists
+const _origTriggerAlert = window.triggerAlert;
+if (typeof triggerAlert === 'function') {
+  window.triggerAlert = function(msg, type) {
+    _origTriggerAlert(msg, type);
+    showAlertToast(msg, type || 'alert');
+  };
+}
+
+// ── 3. SMART CHAT — PLAN/TRADE POPULATION ──────────────
+// Extend sendChatMessage to detect actionable items
+const _origSendChat = window.sendChatMessage;
+window.sendChatMessage = async function() {
+  // Call original
+  if (_origSendChat) {
+    await _origSendChat();
+    // After response, check for actionable content
+    setTimeout(checkChatForActions, 1000);
+  }
+};
+
+function checkChatForActions() {
+  const messages = document.querySelectorAll('#chatMessages > div');
+  const lastMsg = messages[messages.length - 1];
+  if (!lastMsg) return;
+  const text = lastMsg.textContent || '';
+
+  // Detect actionable content in AI response
+  const actions = [];
+
+  // Detect plan-related content
+  const hasBias = /bullish|bearish|neutral|trending|ranging|sideways/i.test(text);
+  const hasCondition = /trending bull|trending bear|ranging|wedge|news.driven|low.vol/i.test(text);
+  const hasKeyLevels = /support|resistance|key level|\d{4,5}\.?\d*/i.test(text);
+  const hasStrategyMention = strategies.some(s => text.toLowerCase().includes(s.name.toLowerCase()));
+
+  if (hasBias || hasCondition || hasKeyLevels) {
+    actions.push({
+      label: '→ Apply to Plan',
+      action: 'plan',
+      color: 'var(--blue)',
+      text
+    });
+  }
+
+  // Detect trade-related content
+  const hasTrade = /long|short|entry|stop.loss|target|take.trade|setup/i.test(text);
+  const hasInstrument = /MNQ|MES|NQ|ES|MCL|MGC/i.test(text);
+
+  if (hasTrade && hasInstrument) {
+    actions.push({
+      label: '→ Apply to Trade',
+      action: 'trade',
+      color: 'var(--accent)',
+      text
+    });
+  }
+
+  if (!actions.length) return;
+
+  // Add action buttons below the last AI message
+  const actionBar = document.createElement('div');
+  actionBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.textContent = a.label;
+    btn.style.cssText = `padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid ${a.color};color:${a.color};cursor:pointer;border-radius:var(--radius);transition:all .12s`;
+    btn.onmouseover = () => btn.style.background = a.color + '18';
+    btn.onmouseout = () => btn.style.background = 'transparent';
+    btn.onclick = () => applyChartToSection(a.action, a.text, btn);
+    actionBar.appendChild(btn);
+  });
+  lastMsg.appendChild(actionBar);
+}
+
+async function applyChartToSection(section, aiText, btn) {
+  btn.disabled = true; btn.textContent = 'Applying...';
+
+  // Ask AI to extract structured data from its own response
+  const extractPrompt = `Extract structured trading data from this AI response to populate a trading journal.
+
+AI RESPONSE:
+"${aiText}"
+
+Return ONLY a JSON object with these fields (include only fields you can confidently extract, omit others):
+{
+  "condition": "trending-bull|trending-bear|ranging|wedge|news-driven|low-vol|null",
+  "bias": "bullish|bearish|neutral|null",
+  "direction": "Long|Short|null",
+  "instrument": "MNQ|MES|MCL|MGC|NQ|ES|null",
+  "keyNotes": "string of key levels and context|null",
+  "hypothesis": "if a trade setup, the entry hypothesis|null",
+  "stopPrice": "number or null",
+  "targetPrice": "number or null",
+  "confidence": "1|2|3|null"
+}
+
+Return only the JSON, no explanation.`;
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 300, messages: [{ role: 'user', content: extractPrompt }] }) });
+    const data = await res.json();
+    const raw = (data.content?.map(c => c.text || '').join('') || '{}').replace(/```[a-z]*|```/g, '').trim();
+    const extracted = JSON.parse(raw);
+
+    if (section === 'plan') {
+      applyToPlan(extracted, aiText);
+    } else if (section === 'trade') {
+      applyToTrade(extracted, aiText);
+    }
+    btn.textContent = '✓ Applied';
+    btn.style.color = 'var(--accent)';
+    btn.style.borderColor = 'var(--accent)';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✗ Try again';
+    console.warn('Apply failed:', e);
+  }
+}
+
+function applyToPlan(data, rawText) {
+  switchTab('plan');
+  const today = new Date().toISOString().split('T')[0];
+  if (!dailyPlans[today]) dailyPlans[today] = {};
+
+  let applied = [];
+
+  if (data.condition && data.condition !== 'null') {
+    const condEl = document.getElementById('planCondition');
+    if (condEl) { condEl.value = data.condition; applied.push('condition'); }
+  }
+  if (data.bias && data.bias !== 'null') {
+    const biasEl = document.getElementById('planBias');
+    if (biasEl) { biasEl.value = data.bias; applied.push('bias'); }
+  }
+  if (data.keyNotes && data.keyNotes !== 'null') {
+    const notesEl = document.getElementById('planBias2');
+    if (notesEl) {
+      notesEl.value = (notesEl.value ? notesEl.value + '\n\n[From AI chat]\n' : '[From AI chat]\n') + data.keyNotes;
+
+
+
+
+      applied.push('notes');
+    }
+  }
+
+  savePlan();
+
+  // Show confirmation in chat
+  const chatEl = document.getElementById('chatMessages');
+  if (chatEl) {
+    const confirm = document.createElement('div');
+    confirm.style.cssText = 'background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);border-radius:8px;padding:8px 11px;font-size:11px;font-family:var(--mono);color:var(--accent)';
+    confirm.textContent = `✓ Applied to Plan: ${applied.join(', ')}. Anything else to fill in?`;
+    chatEl.appendChild(confirm);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  // Ask follow-up for missing fields
+  const missing = [];
+  if (!data.condition || data.condition === 'null') missing.push('market condition');
+  if (!data.bias || data.bias === 'null') missing.push('directional bias');
+
+  if (missing.length) {
+    setTimeout(() => {
+      const input = document.getElementById('chatInput');
+      if (input) {
+        appendChatMessage('coach', `I have applied what I could to your plan. To complete it, could you tell me your ${missing.join(' and ')}?`);
+      }
+    }, 500);
+  }
+}
+
+function applyToTrade(data, rawText) {
+  switchTab('trade');
+  let applied = [];
+
+  if (data.direction && data.direction !== 'null') {
+    const el = document.getElementById('tradeDir'); if (el) { el.value = data.direction; applied.push('direction'); }
+  }
+  if (data.instrument && data.instrument !== 'null') {
+    const el = document.getElementById('tradeInstr'); if (el) { el.value = data.instrument; applied.push('instrument'); }
+  }
+  if (data.stopPrice && data.stopPrice !== 'null') {
+    const el = document.getElementById('tradeStop'); if (el) { el.value = data.stopPrice; applied.push('stop'); }
+  }
+  if (data.targetPrice && data.targetPrice !== 'null') {
+    const el = document.getElementById('tradeTarget'); if (el) { el.value = data.targetPrice; applied.push('target'); }
+  }
+  if (data.hypothesis && data.hypothesis !== 'null') {
+    const el = document.getElementById('tradeHypothesis'); if (el) { el.value = data.hypothesis; applied.push('hypothesis'); }
+  }
+  if (data.confidence && data.confidence !== 'null') {
+    setTradeConf(parseInt(data.confidence));
+    applied.push('confidence');
+  }
+
+  // Recalculate risk
+  calcTradeRisk();
+  updateTradeAcctInfo();
+
+  // Show confirmation
+  const chatEl = document.getElementById('chatMessages');
+  if (chatEl) {
+    const confirm = document.createElement('div');
+    confirm.style.cssText = 'background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);border-radius:8px;padding:8px 11px;font-size:11px;font-family:var(--mono);color:var(--accent)';
+    confirm.textContent = `✓ Applied to Trade tab: ${applied.join(', ')}. Switch to Trade tab to review and complete.`;
+    chatEl.appendChild(confirm);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  // Ask for missing critical fields
+  const missing = [];
+  if (!data.stopPrice || data.stopPrice === 'null') missing.push('stop price');
+  if (!data.targetPrice || data.targetPrice === 'null') missing.push('target price');
+  if (!data.hypothesis || data.hypothesis === 'null') missing.push('entry hypothesis');
+
+  if (missing.length) {
+    setTimeout(() => {
+      appendChatMessage('coach', `Trade tab partially filled. To complete the checklist I still need: ${missing.join(', ')}. What are they?`);
+    }, 500);
+  }
+}
+
+// Auto-run insights when switching to plan tab
+const _origSwitchTabF = window.switchTab;
+window.switchTab = function(tab) {
+  _origSwitchTabF(tab);
+  if (tab === 'plan') {
+    // Run insights automatically if news is already loaded
+    setTimeout(() => {
+      const news = document.getElementById('newsFeed');
+      if (news && news.children.length > 2) runMarketInsights();
+    }, 500);
+  }
 };
 
 </script>
