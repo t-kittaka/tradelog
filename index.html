@@ -1781,7 +1781,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <option value="alert">Alert recommendations</option>
         <option value="behavior">Behavioral analysis</option>
       </select>
-      <button onclick="if(confirm('Clear all memory? This cannot be undone.'))clearAllMemory()" style="padding:5px 11px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+      <button onclick="confirmClearMemory()" style="padding:5px 11px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
     </div>
   </div>
   <!-- Memory stats bar -->
@@ -1969,7 +1969,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
       <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
       <div style="display:flex;gap:7px;margin-bottom:10px">
         <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
-        <button onclick="clearAllMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+        <button onclick="confirmClearMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
       </div>
       <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
     </div>
@@ -1978,13 +1978,101 @@ tbody td{padding:6px 8px;vertical-align:middle}
   <!-- ══ ALERTS SECTION ══ -->
   <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
     <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
-    <div id="alertsSettingsMount"></div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Alert Monitoring</h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="alertStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="alertStatusLabel" style="font-family:var(--mono);font-size:11px;color:var(--text3)">Off</span>
+          <button id="alertToggleSettingsBtn" onclick="toggleAlerts()" style="padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);transition:all .2s">Start monitoring</button>
+        </div>
+      </div>
+      <div id="alertsSettingsMount"></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alert log</div>
+        <div style="display:flex;gap:7px;margin-bottom:7px">
+          <button onclick="clearAlertLog()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Clear log</button>
+        </div>
+        <div id="alertLogSettings" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet — start monitoring to watch for events.</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ══ RISK CALCULATOR SECTION ══ -->
   <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator</div>
-    <div id="riskCalcMount"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator &amp; Instruments</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Quick Risk Calculator</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
+        <div class="form-group"><label class="section-label">Instrument</label>
+          <select class="form-input" id="sCalcInstr" onchange="runSettingsCalc()"></select>
+        </div>
+        <div class="form-group"><label class="section-label">Account</label>
+          <select class="form-input" id="sCalcAcct" onchange="runSettingsCalc()"></select>
+        </div>
+        <div class="form-group"><label class="section-label">Entry price</label>
+          <input type="number" class="form-input" id="sCalcEntry" placeholder="e.g. 21500" step="0.25" oninput="runSettingsCalc()">
+        </div>
+        <div class="form-group"><label class="section-label">Stop (ticks)</label>
+          <input type="number" class="form-input" id="sCalcStopTicks" placeholder="e.g. 10" min="1" oninput="runSettingsCalc()">
+        </div>
+        <div class="form-group"><label class="section-label">Contracts</label>
+          <input type="number" class="form-input" id="sCalcContracts" placeholder="1" min="1" value="1" oninput="runSettingsCalc()">
+        </div>
+      </div>
+      <div id="sCalcResult" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Instrument Reference</h3>
+        <button onclick="openAddInstrModal()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">+ Add</button>
+      </div>
+      <div id="instrTable" style="overflow:hidden">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--bg3)">
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Symbol</th>
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Name</th>
+              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Tick size</th>
+              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">$/tick</th>
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Exchange</th>
+              <th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>
+            </tr>
+          </thead>
+          <tbody id="instrTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Instrument Modal -->
+  <div id="instrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.7)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)" id="instrModalTitle">Add Instrument</div>
+        <button onclick="closeInstrModal()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label class="section-label">Symbol</label><input type="text" class="form-input" id="instrSymbol" placeholder="MNQ" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="form-group"><label class="section-label">Exchange</label><input type="text" class="form-input" id="instrExchange" placeholder="CME"></div>
+        </div>
+        <div class="form-group"><label class="section-label">Full name</label><input type="text" class="form-input" id="instrName" placeholder="Micro Nasdaq"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label class="section-label">Tick size</label><input type="number" class="form-input" id="instrTickSize" placeholder="0.25" step="0.001" min="0.001"></div>
+          <div class="form-group"><label class="section-label">$/tick value</label><input type="number" class="form-input" id="instrTickValue" placeholder="0.50" step="0.01" min="0.01"></div>
+        </div>
+        <div id="instrModalError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono)"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button onclick="closeInstrModal()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
+          <button onclick="saveInstrument()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div><!-- /content -->
@@ -2269,17 +2357,26 @@ function switchTab(tab){
   if(tab==='settings'){
     renderAccountManager();renderStratManager();renderEvolLog();populateEvolSelect();
     renderMemoryTab();
-    // Mount alerts config into settings
+    renderInstrTableSettings();
+    initAlertsTab();
+    updateAlertToggleUI();
+    // Sync alert log to settings panel
+    const alertLogSettings = document.getElementById('alertLogSettings');
+    if (alertLogSettings) {
+      if (alertLog.length === 0) {
+        alertLogSettings.innerHTML = '<div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet.</div>';
+      } else {
+        alertLogSettings.innerHTML = alertLog.slice(0,10).map(a =>
+          '<div style="font-size:11px;font-family:var(--mono);color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)">' +
+          '<span style="color:var(--text3)">' + (a.time||'') + '</span>  ' + (a.title||a.msg||'Alert') + '</div>'
+        ).join('');
+      }
+    }
+    // Mount alerts config toggles
     const alertsMount = document.getElementById('alertsSettingsMount');
     if(alertsMount && !alertsMount.dataset.rendered) {
       const alertsTab = document.getElementById('tab-alerts');
-      if(alertsTab) { alertsMount.innerHTML = alertsTab.innerHTML; alertsMount.dataset.rendered='1'; initAlertsTab(); }
-    }
-    // Mount risk calc into settings
-    const riskMount = document.getElementById('riskCalcMount');
-    if(riskMount && !riskMount.dataset.rendered) {
-      const riskTab = document.getElementById('tab-calculator');
-      if(riskTab) { riskMount.innerHTML = riskTab.innerHTML; riskMount.dataset.rendered='1'; renderInstrTable(); }
+      if(alertsTab) { alertsMount.innerHTML = alertsTab.innerHTML; alertsMount.dataset.rendered='1'; }
     }
   }
   if(tab==='memory')renderMemoryTab();
@@ -4824,10 +4921,21 @@ function deleteMemoryEntry(id) {
   renderMemoryTab();
 }
 
+function confirmClearMemory() {
+  const modal = document.getElementById('clearMemoryModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeClearMemoryModal() {
+  const modal = document.getElementById('clearMemoryModal');
+  if (modal) modal.style.display = 'none';
+}
+
 function clearAllMemory() {
   coachingMemory = [];
   saveMemory();
   renderMemoryTab();
+  closeClearMemoryModal();
 }
 
 
@@ -8615,7 +8723,7 @@ function renderToast(toast) {
     price: { bg: 'rgba(0,229,160,.1)', border: 'rgba(0,229,160,.3)', dot: 'var(--accent)', icon: '📈' },
     info: { bg: 'rgba(85,153,255,.1)', border: 'rgba(85,153,255,.3)', dot: 'var(--blue)', icon: 'ℹ' },
   };
-  const c = colors[type] || colors.info;
+  const c = colors[toast.type] || colors.info;
 
   const div = document.createElement('div');
   div.id = toast.id;
@@ -8918,6 +9026,456 @@ window.switchTab = function(tab) {
   }
 };
 
+
+// ══════════════════════════════════════════
+// ALERTS TOGGLE + INIT
+// ══════════════════════════════════════════
+function toggleAlerts() {
+  alertsActive = !alertsActive;
+  updateAlertToggleUI();
+  if (alertsActive) {
+    showToast('Alert monitoring started', 'info');
+    startAlertPolling();
+  } else {
+    showToast('Alert monitoring stopped', 'info');
+    if (alertPollTimer) { clearInterval(alertPollTimer); alertPollTimer = null; }
+  }
+}
+
+function updateAlertToggleUI() {
+  // Update all alert toggle buttons/indicators
+  const buttons = document.querySelectorAll('#alertToggleBtn, #alertToggleSettingsBtn');
+  const statusDot = document.getElementById('alertStatusDot');
+  const statusLabel = document.getElementById('alertStatusLabel');
+  const sbDot = document.getElementById('alertDot');
+  const sbTxt = document.getElementById('sbAlertTxt');
+
+  buttons.forEach(btn => {
+    if (!btn) return;
+    btn.textContent = alertsActive ? 'Stop monitoring' : 'Start monitoring';
+    btn.style.background = alertsActive ? 'rgba(0,229,160,.1)' : 'var(--bg4)';
+    btn.style.borderColor = alertsActive ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = alertsActive ? 'var(--accent)' : 'var(--text2)';
+  });
+
+  if (statusDot) { statusDot.style.background = alertsActive ? 'var(--accent)' : 'var(--text3)'; statusDot.style.boxShadow = alertsActive ? '0 0 5px var(--accent)' : 'none'; }
+  if (statusLabel) { statusLabel.textContent = alertsActive ? 'Active' : 'Off'; statusLabel.style.color = alertsActive ? 'var(--accent)' : 'var(--text3)'; }
+  if (sbDot) { sbDot.className = 'sb-dot ' + (alertsActive ? 'sb-dot-on' : 'sb-dot-off'); }
+  if (sbTxt) { sbTxt.textContent = alertsActive ? 'On' : 'Off'; sbTxt.className = 'sb-v ' + (alertsActive ? 'sb-ok' : 'sb-neu'); }
+}
+
+function startAlertPolling() {
+  if (alertPollTimer) clearInterval(alertPollTimer);
+  alertPollTimer = setInterval(pollAlerts, 30000);
+  pollAlerts(); // run immediately
+}
+
+function initAlertsTab() {
+  updateAlertToggleUI();
+  renderAlertLog();
+  // Sync alerts config UI
+  Object.entries(alertConfig).forEach(([key, val]) => {
+    const el = document.getElementById('ac-' + key);
+    if (el) {
+      if (el.type === 'checkbox') el.checked = !!val;
+      else el.value = val;
+    }
+  });
+}
+
+function showToast(msg, type) {
+  if (typeof showAlertToast === 'function') showAlertToast(msg, type);
+}
+
+// ══════════════════════════════════════════
+// INSTRUMENT MANAGEMENT
+// ══════════════════════════════════════════
+let _editingInstr = null; // null = add mode, symbol string = edit mode
+
+function renderInstrTableSettings() {
+  const tbody = document.getElementById('instrTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = Object.entries(INSTRUMENTS).map(([sym, instr]) => `
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 10px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--accent)">${sym}</td>
+      <td style="padding:7px 10px;font-size:12px;color:var(--text2)">${instr.name}</td>
+      <td style="padding:7px 10px;font-family:var(--mono);font-size:12px;color:var(--text2);text-align:right">${instr.tickSize}</td>
+      <td style="padding:7px 10px;font-family:var(--mono);font-size:12px;color:var(--accent);text-align:right">$${instr.tickValue}</td>
+      <td style="padding:7px 10px;font-size:11px;color:var(--text3)">${instr.exchange || '—'}</td>
+      <td style="padding:7px 10px;text-align:right">
+        <button onclick="openEditInstrModal('${sym}')" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);margin-right:4px">Edit</button>
+        <button onclick="deleteInstrument('${sym}')" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Del</button>
+      </td>
+    </tr>`).join('');
+
+  // Populate settings calculator dropdowns
+  const sInstr = document.getElementById('sCalcInstr');
+  const sAcct = document.getElementById('sCalcAcct');
+  if (sInstr) { sInstr.innerHTML = Object.keys(INSTRUMENTS).map(s => `<option value="${s}">${s} — ${INSTRUMENTS[s].name}</option>`).join(''); }
+  if (sAcct) { sAcct.innerHTML = '<option value="">No account</option>' + accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join(''); }
+}
+
+function openAddInstrModal() {
+  _editingInstr = null;
+  document.getElementById('instrModalTitle').textContent = 'Add Instrument';
+  ['instrSymbol','instrName','instrExchange','instrTickSize','instrTickValue'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('instrModalError').style.display = 'none';
+  const modal = document.getElementById('instrModal');
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('instrSymbol')?.focus(), 50);
+}
+
+function openEditInstrModal(sym) {
+  _editingInstr = sym;
+  const instr = INSTRUMENTS[sym];
+  if (!instr) return;
+  document.getElementById('instrModalTitle').textContent = 'Edit Instrument — ' + sym;
+  document.getElementById('instrSymbol').value = sym;
+  document.getElementById('instrSymbol').readOnly = true;
+  document.getElementById('instrName').value = instr.name || '';
+  document.getElementById('instrExchange').value = instr.exchange || '';
+  document.getElementById('instrTickSize').value = instr.tickSize || '';
+  document.getElementById('instrTickValue').value = instr.tickValue || '';
+  document.getElementById('instrModalError').style.display = 'none';
+  const modal = document.getElementById('instrModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeInstrModal() {
+  const modal = document.getElementById('instrModal');
+  if (modal) modal.style.display = 'none';
+  const symInput = document.getElementById('instrSymbol');
+  if (symInput) symInput.readOnly = false;
+  _editingInstr = null;
+}
+
+function saveInstrument() {
+  const sym = document.getElementById('instrSymbol')?.value?.trim().toUpperCase();
+  const name = document.getElementById('instrName')?.value?.trim();
+  const exchange = document.getElementById('instrExchange')?.value?.trim();
+  const tickSize = parseFloat(document.getElementById('instrTickSize')?.value);
+  const tickValue = parseFloat(document.getElementById('instrTickValue')?.value);
+  const errEl = document.getElementById('instrModalError');
+
+  if (!sym) { errEl.textContent = 'Symbol is required.'; errEl.style.display = 'block'; return; }
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+  if (!tickSize || tickSize <= 0) { errEl.textContent = 'Tick size must be > 0.'; errEl.style.display = 'block'; return; }
+  if (!tickValue || tickValue <= 0) { errEl.textContent = 'Tick value must be > 0.'; errEl.style.display = 'block'; return; }
+  if (!_editingInstr && INSTRUMENTS[sym]) { errEl.textContent = sym + ' already exists. Edit it instead.'; errEl.style.display = 'block'; return; }
+
+  INSTRUMENTS[sym] = { name, tickSize, tickValue, exchange: exchange || 'CME' };
+  // Persist to localStorage
+  localStorage.setItem('tj_custom_instruments', JSON.stringify(INSTRUMENTS));
+  renderInstrTableSettings();
+  populateAllSelects();
+  closeInstrModal();
+}
+
+function deleteInstrument(sym) {
+  const builtIn = ['MNQ','MES','MCL','MGC','MBT','NQ','ES','QM','YG'];
+  if (builtIn.includes(sym)) {
+    if (!confirm(sym + ' is a built-in instrument. Delete it? It will return after a hard refresh.')) return;
+  } else {
+    if (!confirm('Delete ' + sym + '?')) return;
+  }
+  delete INSTRUMENTS[sym];
+  localStorage.setItem('tj_custom_instruments', JSON.stringify(INSTRUMENTS));
+  renderInstrTableSettings();
+  populateAllSelects();
+}
+
+function runSettingsCalc() {
+  const sym = document.getElementById('sCalcInstr')?.value;
+  const acctId = document.getElementById('sCalcAcct')?.value;
+  const entry = parseFloat(document.getElementById('sCalcEntry')?.value) || 0;
+  const stopTicks = parseInt(document.getElementById('sCalcStopTicks')?.value) || 0;
+  const contracts = parseInt(document.getElementById('sCalcContracts')?.value) || 1;
+  const instr = INSTRUMENTS[sym];
+  const acct = accounts.find(a => a.id === acctId);
+  const bal = acct ? getAccountRunningBalance(acct) : 0;
+  const maxRiskPct = acct ? (acct.maxRiskPct || 4) : 4;
+  const maxRiskDollar = bal > 0 ? bal * maxRiskPct / 100 : 0;
+  const resultEl = document.getElementById('sCalcResult');
+  if (!resultEl || !instr) return;
+
+  const tickRisk = stopTicks * instr.tickValue;
+  const totalRisk = tickRisk * contracts;
+  const stopPrice = entry > 0 && stopTicks > 0 ? (entry - stopTicks * instr.tickSize).toFixed(2) : '—';
+  const maxContracts = tickRisk > 0 && maxRiskDollar > 0 ? Math.floor(maxRiskDollar / tickRisk) : '—';
+
+  const cell = (label, val, color='var(--text)') => `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;text-align:center"><div style="font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;margin-bottom:4px">${label}</div><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:${color}">${val}</div></div>`;
+
+  resultEl.innerHTML =
+    cell('Risk/contract', tickRisk > 0 ? '$' + tickRisk.toFixed(2) : '—', 'var(--amber)') +
+    cell('Total risk', totalRisk > 0 ? '$' + totalRisk.toFixed(2) : '—', totalRisk > maxRiskDollar && maxRiskDollar > 0 ? 'var(--red)' : 'var(--amber)') +
+    cell('Max contracts', maxContracts, 'var(--accent)') +
+    cell('Stop price', stopPrice, 'var(--text2)');
+
+  if (maxRiskDollar > 0 && totalRisk > maxRiskDollar) {
+    resultEl.innerHTML += `<div style="grid-column:1/-1;font-size:11px;font-family:var(--mono);color:var(--red);text-align:center;margin-top:4px">⚠ Total risk exceeds your max ${maxRiskPct}% limit ($${maxRiskDollar.toFixed(0)})</div>`;
+  }
+}
+
+// Load custom instruments on startup
+(function loadCustomInstruments() {
+  try {
+    const custom = JSON.parse(localStorage.getItem('tj_custom_instruments') || '{}');
+    Object.entries(custom).forEach(([sym, data]) => { INSTRUMENTS[sym] = data; });
+  } catch(e) {}
+})();
+
+// Hook settings tab render to also render instrument table and calc
+const _origSettingsRender = window.switchTab;
+// (already hooked — just add renderInstrTableSettings call inside settings block)
+
+
+// ══════════════════════════════════════════
+// ALERTS — CORE FUNCTIONS
+// ══════════════════════════════════════════
+
+function saveAlertConfig() {
+  // Read all toggle states from either the alerts tab or settings mount
+  ['cpi','nfp','fomc','gdp','medium','vol','volspike','gap','sound','notif','autorec'].forEach(key => {
+    const el = document.getElementById('toggle-' + key) || document.querySelector('[id$="toggle-' + key + '"]');
+    if (el) alertConfig[key] = el.classList.contains('on');
+  });
+  ['volthresh','gapthresh','levelthresh','volume','poll'].forEach(key => {
+    const el = document.getElementById('cfg-' + key) || document.querySelector('[id$="cfg-' + key + '"]');
+    if (el) alertConfig[key] = parseFloat(el.value) || alertConfig[key];
+  });
+  const instrEl = document.getElementById('cfg-instrument');
+  if (instrEl) alertConfig.instrument = instrEl.value;
+  localStorage.setItem('tj_alertconfig', JSON.stringify(alertConfig));
+}
+
+function renderAlertLog() {
+  // Render into the alerts tab
+  const tabEl = document.getElementById('alertLog');
+  // Render into the settings panel
+  const settingsEl = document.getElementById('alertLogSettings');
+
+  const renderItems = (el) => {
+    if (!el) return;
+    if (!alertLog.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:12px">No alerts yet — start monitoring to watch for events.</div>';
+      return;
+    }
+    el.innerHTML = alertLog.slice(0, 30).map(a => {
+      const sevColors = { critical: 'var(--red)', warning: 'var(--amber)', info: 'var(--blue)', opportunity: 'var(--accent)' };
+      const col = sevColors[a.severity] || sevColors.info;
+      return '<div class="alert-card ' + (a.severity||'info') + '" style="' + (a.read?'opacity:.7':'') + '">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">' +
+        '<span style="font-family:var(--mono);font-size:10px;font-weight:600;color:' + col + '">' + (a.label||'Alert') + '</span>' +
+        '<span style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-left:auto">' + (a.time||'') + '</span>' +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:500;margin-bottom:3px">' + (a.title||'') + '</div>' +
+        '<div style="font-size:12px;color:var(--text2)">' + (a.detail||'') + '</div>' +
+        (a.link ? '<a href="' + a.link + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--blue);font-family:var(--mono);margin-top:4px;display:block">Read →</a>' : '') +
+        '</div>';
+    }).join('');
+  };
+
+  renderItems(tabEl);
+  renderItems(settingsEl);
+  updateAlertBadge();
+}
+
+function updateAlertBadge() {
+  const unread = alertLog.filter(a => !a.read).length;
+  const badge = document.getElementById('alertBadge');
+  if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'inline' : 'none'; }
+  updateAlertToggleUI();
+}
+
+function addAlert(severity, label, title, detail, link) {
+  const entry = {
+    id: 'al_' + Date.now(),
+    severity, label, title, detail, link,
+    time: new Date().toLocaleTimeString(),
+    timestamp: Date.now(),
+    read: false,
+    recommendation: null,
+    recLoading: false
+  };
+  alertLog.unshift(entry);
+  if (alertLog.length > 100) alertLog.pop();
+  renderAlertLog();
+  // Show toast
+  showAlertToast(title + (detail ? ' — ' + detail.slice(0, 80) : ''), severity === 'critical' ? 'alert' : severity === 'warning' ? 'news' : 'info');
+  // Browser notification
+  if (alertConfig.notif && Notification.permission === 'granted') {
+    try { new Notification('Trade Boy Alert: ' + label, { body: title, icon: '/favicon.ico' }); } catch(e) {}
+  }
+  // Sound
+  if (alertConfig.sound) playAlertSound(severity);
+}
+
+function playAlertSound(severity) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    const vol = parseFloat(alertConfig.volume) || 0.6;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    // Different tones by severity
+    const freqs = { critical: [880, 660, 880], warning: [660, 880], info: [523], opportunity: [523, 659, 784] };
+    const tones = freqs[severity] || freqs.info;
+    osc.frequency.setValueAtTime(tones[0], ctx.currentTime);
+    tones.forEach((f, i) => osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.15));
+    osc.start(); osc.stop(ctx.currentTime + 0.8);
+  } catch(e) { console.warn('Sound error:', e); }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(perm => {
+      const bar = document.getElementById('permissionBar');
+      if (perm === 'granted' && bar) bar.classList.add('hidden');
+    });
+  }
+}
+
+function addPriceLevel() {
+  if (!alertConfig.levels) alertConfig.levels = [];
+  alertConfig.levels.push({ price: 0, label: 'Level ' + (alertConfig.levels.length + 1) });
+  renderLevelsList();
+  saveAlertConfig();
+}
+
+function removePriceLevel(idx) {
+  alertConfig.levels.splice(idx, 1);
+  renderLevelsList();
+  saveAlertConfig();
+}
+
+function updateLevel(idx, field, val) {
+  if (!alertConfig.levels[idx]) return;
+  alertConfig.levels[idx][field] = field === 'price' ? parseFloat(val) : val;
+  saveAlertConfig();
+}
+
+function renderLevelsList() {
+  const els = document.querySelectorAll('#levelsList');
+  els.forEach(el => {
+    if (!el) return;
+    el.innerHTML = (alertConfig.levels || []).map((lv, i) =>
+      '<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">' +
+      '<input type="number" class="form-input-mono" placeholder="Price" value="' + (lv.price||'') + '" style="flex:1" onchange="updateLevel(' + i + ',&quot;price&quot;,this.value)">' +
+      '<input type="text" class="form-input-mono" placeholder="Label" value="' + (lv.label||'') + '" style="flex:1" onchange="updateLevel(' + i + ',&quot;label&quot;,this.value)">' +
+      '<button onclick="removePriceLevel(' + i + ')" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>' +
+      '</div>'
+    ).join('');
+  });
+}
+
+async function pollAlerts() {
+  if (!alertsActive) return;
+  const key = alertConfig.instrument || 'MNQ=F';
+  const now = Date.now();
+
+  try {
+    // Fetch price via Yahoo Finance proxy
+    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(key) + '?interval=1m&range=1d';
+    const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+    if (!res.ok) return;
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) return;
+
+    const quotes = result.indicators?.quote?.[0];
+    const timestamps = result.timestamp;
+    if (!quotes || !timestamps || !timestamps.length) return;
+
+    const lastIdx = timestamps.length - 1;
+    const price = quotes.close?.[lastIdx];
+    const volume = quotes.volume?.[lastIdx];
+    const open = result.meta?.chartPreviousClose || result.meta?.regularMarketPreviousClose;
+
+    if (!price) return;
+
+    // ── Volatility spike check ──
+    if (alertConfig.vol && lastPrice !== null) {
+      const changePct = Math.abs((price - lastPrice) / lastPrice * 100);
+      const thresh = parseFloat(alertConfig.volthresh) || 0.5;
+      if (changePct >= thresh) {
+        const alertKey = 'vol_' + Math.floor(now / 60000);
+        if (!firedAlertKeys.has(alertKey)) {
+          firedAlertKeys.add(alertKey);
+          const dir = price > lastPrice ? '↑' : '↓';
+          addAlert('warning', 'Volatility Spike', key.replace('=F','') + ' moved ' + dir + ' ' + changePct.toFixed(2) + '%', 'Price: ' + price.toFixed(2) + ' (was ' + lastPrice.toFixed(2) + ')');
+        }
+      }
+    }
+
+    // ── Pre-market gap check ──
+    if (alertConfig.gap && open && Math.abs(price - open) / open * 100 >= (parseFloat(alertConfig.gapthresh) || 0.3)) {
+      const alertKey = 'gap_' + new Date().toDateString();
+      if (!firedAlertKeys.has(alertKey)) {
+        firedAlertKeys.add(alertKey);
+        const gapPct = ((price - open) / open * 100).toFixed(2);
+        addAlert('warning', 'Gap', key.replace('=F','') + ' gap: ' + (gapPct > 0 ? '+' : '') + gapPct + '%', 'Previous close: ' + open.toFixed(2) + ' | Current: ' + price.toFixed(2));
+      }
+    }
+
+    // ── Price level check ──
+    if (alertConfig.levels?.length) {
+      const ticksThresh = parseFloat(alertConfig.levelthresh) || 5;
+      const instrKey = Object.keys(INSTRUMENTS).find(k => key.startsWith(k)) || 'MNQ';
+      const tickSize = INSTRUMENTS[instrKey]?.tickSize || 0.25;
+      alertConfig.levels.forEach((lv, idx) => {
+        if (!lv.price) return;
+        const ticks = Math.abs(price - lv.price) / tickSize;
+        if (ticks <= ticksThresh) {
+          const alertKey = 'level_' + idx + '_' + Math.floor(now / 120000);
+          if (!firedAlertKeys.has(alertKey)) {
+            firedAlertKeys.add(alertKey);
+            addAlert('info', 'Key Level', 'Near ' + (lv.label || 'price level') + ' — ' + lv.price, 'Current: ' + price.toFixed(2) + ' (' + ticks.toFixed(1) + ' ticks away)');
+          }
+        }
+      });
+    }
+
+    // ── Economic news keyword check ──
+    if (alertConfig.cpi || alertConfig.nfp || alertConfig.fomc || alertConfig.gdp || alertConfig.medium) {
+      const newsEls = Array.from(document.querySelectorAll('#newsFeed > a'));
+      const headlines = newsEls.map(a => {
+        const divs = Array.from(a.querySelectorAll(':scope > div'));
+        return divs[1]?.textContent?.trim() || '';
+      }).filter(Boolean);
+
+      const keywords = [];
+      if (alertConfig.cpi) keywords.push({ term: 'CPI', label: 'CPI', sev: 'critical' });
+      if (alertConfig.nfp) keywords.push({ term: 'nonfarm', label: 'NFP', sev: 'critical' }, { term: 'NFP', label: 'NFP', sev: 'critical' }, { term: 'jobs report', label: 'NFP', sev: 'critical' });
+      if (alertConfig.fomc) keywords.push({ term: 'FOMC', label: 'FOMC', sev: 'critical' }, { term: 'Federal Reserve', label: 'Fed', sev: 'critical' }, { term: 'interest rate', label: 'Rate', sev: 'warning' });
+      if (alertConfig.gdp) keywords.push({ term: 'GDP', label: 'GDP', sev: 'critical' });
+      if (alertConfig.medium) keywords.push({ term: 'inflation', label: 'News', sev: 'warning' }, { term: 'recession', label: 'News', sev: 'warning' }, { term: 'earnings', label: 'News', sev: 'info' });
+
+      headlines.forEach(headline => {
+        keywords.forEach(kw => {
+          if (headline.toLowerCase().includes(kw.term.toLowerCase())) {
+            const alertKey = 'news_' + kw.term + '_' + headline.slice(0, 30);
+            if (!firedAlertKeys.has(alertKey)) {
+              firedAlertKeys.add(alertKey);
+              addAlert(kw.sev, kw.label, headline.slice(0, 100), 'News alert — may affect market volatility');
+            }
+          }
+        });
+      });
+    }
+
+    lastPrice = price;
+    priceHistory.push({ time: now, price });
+    if (priceHistory.length > 60) priceHistory.shift();
+
+  } catch(e) {
+    console.warn('pollAlerts error:', e.message);
+  }
+}
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
@@ -9037,6 +9595,34 @@ window.switchTab = function(tab) {
     <div style="margin-top:20px;font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center;line-height:1.6">
       Your data is stored securely in Supabase.<br>
       Only you can access it when signed in.
+    </div>
+  </div>
+</div>
+<!-- ── CLEAR MEMORY CONFIRMATION MODAL ── -->
+<div id="clearMemoryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px 32px;width:460px;max-width:calc(100vw - 40px);box-shadow:0 12px 40px rgba(0,0,0,.8)">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px">
+      <div style="font-size:28px;flex-shrink:0;margin-top:2px">🧠</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Clear all coaching memory?</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--red)">This action cannot be undone.</div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.75">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">What coaching memory is</div>
+      Every time the AI coach gives you meaningful feedback, that insight is saved here and injected into every future AI conversation. This means the coach <strong style="color:var(--text)">remembers your journey</strong> — your tendencies, recurring mistakes, and what you have improved — giving you tailored advice rather than starting from scratch each session.
+    </div>
+    <div style="background:var(--bg3);border:1px solid rgba(255,179,71,.25);border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.75">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">If you clear memory</div>
+      The AI coach will lose all context about you. Future sessions will feel more generic until new memories accumulate again — this typically takes several weeks of active use to rebuild.
+    </div>
+    <div style="background:var(--bg3);border:1px solid rgba(0,229,160,.2);border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.75">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">When clearing makes sense</div>
+      If you are starting a completely new trading approach, if old memories contain incorrect or outdated information, or if you want the coach to approach your sessions without prior assumptions.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeClearMemoryModal()" style="padding:9px 20px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);font-weight:500">Keep my memory</button>
+      <button onclick="clearAllMemory()" style="padding:9px 20px;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid rgba(255,85,85,.5);color:var(--red);cursor:pointer;border-radius:var(--radius);font-weight:500">Yes, clear everything</button>
     </div>
   </div>
 </div>
