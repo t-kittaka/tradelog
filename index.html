@@ -2176,6 +2176,14 @@ function parseCSV(text){
       durationMins,importAccount:acctId,rMultiple:null,
       _importedMAE:maeTicks,_importedMFE:mfeTicks,_exitName:g('exitName')});
   }
+  // Filter out any rows that look like orders (no P&L, direction is order type)
+  const orderDirs = new Set(['market','stop market','limit','stop','buy','sell','buy to cover','sell short']);
+  const validNewTrades = newTrades.filter(t => !orderDirs.has((t.direction||'').toLowerCase()) && t.entryTime);
+  if(validNewTrades.length === 0 && newTrades.length > 0) {
+    alert('This looks like an Orders file, not a Trades file.\nPlease use the Trades/Executions export for the main import,\nand the Orders export in the orders enrichment zone below.');
+    return;
+  }
+  newTrades.splice(0, newTrades.length, ...validNewTrades);
   if(newTrades.length===0){alert('No valid trades found. Export the Executions/Trades tab.');return;}
   const existingKeys=new Set(trades.map(t=>t.entryTime+'_'+t.direction+'_'+t.pnl));
   let added=0;
@@ -9781,6 +9789,16 @@ function parseOrdersCSV(text) {
   if (lines.length < 2) { alert('Orders CSV appears empty.'); return; }
   const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
   const fc = aliases => { for (const a of aliases) { const i = headers.findIndex(h => h.includes(a)); if (i !== -1) return i; } return -1; };
+
+  // Guard: reject if this looks like a trades file (has profit/entry price columns)
+  // This prevents the orders importer from accidentally importing trades
+  const hasProfit = headers.some(h => h.includes('profit') || h.includes('entry price') || h.includes('exit price'));
+  const hasAction = headers.some(h => h === 'action');
+  const hasState  = headers.some(h => h === 'state');
+  if (hasProfit || (!hasAction && !hasState)) {
+    alert('This looks like a trades file, not an orders file.\n\nFor stop/target adjustment import, use the Orders CSV exported from NinjaTrader Control Center → Orders tab.');
+    return;
+  }
 
   const cols = {
     instrument: fc(['instrument','symbol']),
