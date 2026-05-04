@@ -687,8 +687,13 @@ tbody td{padding:6px 8px;vertical-align:middle}
           <label class="section-label">Outcome screenshots (result chart, P&amp;L, up to 3)</label>
           <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:5px">Ctrl+V to paste · drag and drop · or click to browse</div>
           <div id="postSSGrid" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px"></div>
-          <div id="postSSZone" class="import-zone" style="min-height:55px;cursor:pointer" onclick="document.getElementById('postSSInput').click()" ondrop="handlePostSSDrop(event)" ondragover="event.preventDefault()">
-            <div style="font-size:14px">📷</div><div style="font-size:11px;color:var(--text3)">Result chart · P&amp;L screenshot</div>
+          <div id="postSSZone" class="import-zone" style="min-height:55px;cursor:default;outline:none" tabindex="0"
+            ondrop="handlePostSSDrop(event)" ondragover="event.preventDefault()"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''"
+            title="Click to focus, then Ctrl+V to paste — or drag and drop">
+            <div style="font-size:14px">📷</div>
+            <div style="font-size:11px;color:var(--text3)">Ctrl+V to paste · or drag and drop</div>
+            <button type="button" onclick="event.stopPropagation();document.getElementById('postSSInput').click()" style="margin-top:5px;padding:3px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Browse files</button>
           </div>
           <input type="file" id="postSSInput" accept="image/*" multiple style="display:none" onchange="handlePostSSFiles(event)">
         </div>
@@ -7891,10 +7896,16 @@ document.addEventListener('paste', function(e) {
     if (item.type.startsWith('image/')) {
       const file = item.getAsFile();
       if (!file) return;
-      // Route to active drop zone
       const activeTab = document.querySelector('.tab-content.active')?.id;
       if (activeTab === 'tab-trade') {
-        if (document.activeElement?.closest('#postSSZone') || document.activeElement?.id === 'postTradeNotes') {
+        // Route to post-trade if focus is in the post-trade panel, or on the post SS zone
+        const active = document.activeElement;
+        const inPostPanel = active?.closest('#postSSZone') ||
+                            active?.id === 'postTradeNotes' ||
+                            active?.id === 'postSSZone' ||
+                            active?.closest('[id^="postSS"]') ||
+                            active?.closest('.card')?.querySelector('#postSSZone');
+        if (inPostPanel) {
           addPostSS(file);
         } else {
           addTradeSS(file);
@@ -9565,6 +9576,10 @@ function openEditPTC(id) {
   _editingPTCConf = entry.confidence || 0;
   setEditPTCConf(_editingPTCConf);
 
+  // Load existing post-trade screenshots
+  _editPostSSImages = (entry.postScreenshots || []).map(dataUrl => ({ dataUrl, name: 'screenshot' }));
+  renderEditPostSSGrid();
+
   const modal = document.getElementById('editPTCModal');
   if (modal) modal.style.display = 'flex';
   setTimeout(() => document.getElementById('editPTCHypothesis')?.focus(), 50);
@@ -9584,6 +9599,8 @@ function closeEditPTC() {
   const modal = document.getElementById('editPTCModal');
   if (modal) modal.style.display = 'none';
   _editingPTCId = null;
+  _editPostSSImages = [];
+  renderEditPostSSGrid();
 }
 
 function saveEditPTC() {
@@ -9597,6 +9614,7 @@ function saveEditPTC() {
   entry.target = parseFloat(document.getElementById('editPTCTarget')?.value) || entry.target;
   entry.overrideNote = document.getElementById('editPTCOverride')?.value?.trim() || '';
   entry.postNotes = document.getElementById('editPTCPostNotes')?.value?.trim() || '';
+  entry.postScreenshots = _editPostSSImages.map(s => s.dataUrl);
   entry.confidence = _editingPTCConf;
 
   const stratSel = document.getElementById('editPTCStrat');
@@ -9620,6 +9638,57 @@ function deleteEditPTC(id) {
   // Refresh post-trade link dropdown
   populateTradeSelects();
 }
+
+
+// ── Edit modal post-trade screenshot state ──
+let _editPostSSImages = []; // screenshots being edited in the modal
+
+function handleEditPostSSDrop(e) {
+  e.preventDefault();
+  [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')).forEach(addEditPostSS);
+}
+function handleEditPostSSFiles(e) {
+  [...e.target.files].forEach(addEditPostSS);
+  e.target.value = '';
+}
+function addEditPostSS(file) {
+  if (_editPostSSImages.length >= 3) { alert('Maximum 3 outcome screenshots.'); return; }
+  readImageFile(file, dataUrl => {
+    _editPostSSImages.push({ dataUrl, name: file.name || 'screenshot' });
+    renderEditPostSSGrid();
+  });
+}
+function removeEditPostSS(i) {
+  _editPostSSImages.splice(i, 1);
+  renderEditPostSSGrid();
+}
+function renderEditPostSSGrid() {
+  const el = document.getElementById('editPostSSGrid');
+  if (!el) return;
+  el.innerHTML = _editPostSSImages.map((img, i) =>
+    `<div style="position:relative;width:90px;height:70px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
+      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="removeEditPostSS(${i})" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;color:#fff;cursor:pointer;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0">✕</button>
+    </div>`
+  ).join('');
+}
+
+// Route paste to edit modal when it's open and the post zone is focused
+const _origPasteHandler = document.onpaste;
+document.addEventListener('paste', function(e) {
+  const modal = document.getElementById('editPTCModal');
+  if (!modal || modal.style.display === 'none') return;
+  const active = document.activeElement;
+  if (active?.id !== 'editPostSSZone' && active?.id !== 'editPTCPostNotes' && !active?.closest('#editPTCModal')) return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) { addEditPostSS(file); e.preventDefault(); }
+    }
+  }
+}, true); // capture phase so it runs before the global paste handler
 
 </script>
 
@@ -9825,6 +9894,19 @@ function deleteEditPTC(id) {
       <div class="form-group">
         <label class="section-label">Post-trade notes</label>
         <textarea class="form-input" id="editPTCPostNotes" style="min-height:60px;font-size:12px"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Outcome screenshots</label>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:5px">Ctrl+V to paste · drag and drop · or click browse — up to 3</div>
+        <div id="editPostSSGrid" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
+        <div id="editPostSSZone" class="import-zone" style="min-height:50px;cursor:default;outline:none" tabindex="0"
+          ondrop="handleEditPostSSDrop(event)" ondragover="event.preventDefault()"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''">
+          <div style="font-size:13px">📷</div>
+          <div style="font-size:11px;color:var(--text3)">Result chart · P&L screenshot</div>
+          <button type="button" onclick="event.stopPropagation();document.getElementById('editPostSSInput').click()" style="margin-top:4px;padding:2px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Browse</button>
+        </div>
+        <input type="file" id="editPostSSInput" accept="image/*" multiple style="display:none" onchange="handleEditPostSSFiles(event)">
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button onclick="closeEditPTC()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
