@@ -1049,40 +1049,6 @@ tbody td{padding:6px 8px;vertical-align:middle}
     </div>
   </div>
 </div>
-  </div>
-  <div class="two-col">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="form-group"><label>Market condition today</label>
-        <select class="form-input" id="plan-condition">
-          <option value="">Select...</option>
-          <option value="trending-bull">Trending — Bullish</option><option value="trending-bear">Trending — Bearish</option>
-          <option value="ranging">Ranging / Sideways</option><option value="wedge">Wedge / Triangle compression</option>
-          <option value="news-driven">News-driven / High volatility</option><option value="low-vol">Low volatility / Choppy</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Key levels to watch</label>
-        <textarea class="form-input" id="plan-levels" placeholder="Support: 21,450&#10;Resistance: 21,750&#10;Trend line convergence at..."></textarea>
-      </div>
-      <div class="form-group"><label>Market bias / setup</label>
-        <textarea class="form-input" id="plan-bias" placeholder="Bias today and conditions needed before entry..."></textarea>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="form-group" style="flex:1"><label>Max trades</label><input type="number" class="form-input" id="plan-maxtrades" value="3" min="1"></div>
-        <div class="form-group" style="flex:1"><label>Max loss ($)</label><input type="number" class="form-input" id="plan-maxloss" placeholder="e.g. 200"></div>
-        <div class="form-group" style="flex:1"><label>Strategy</label>
-          <select class="form-input" id="plan-strat"><option value="">—</option></select>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="form-group"><label>Pre-session mindset</label>
-        <textarea class="form-input" id="plan-mindset" placeholder="How am I feeling? What did yesterday teach me?"></textarea>
-      </div>
-      <div class="form-group"><label>End-of-day review</label>
-        <textarea class="form-input" id="plan-review" placeholder="Did I follow my plan? What would I do differently?"></textarea>
-      </div>
-</div>
-
 <!-- REPLAY TAB --><!-- REPLAY TAB -->
 <div class="tab-content" id="tab-replay">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -7874,12 +7840,16 @@ setInterval(async () => {
   const mainEl = document.querySelector('.main');
   const appEl = document.querySelector('.app');
   if (!contentEl) return;
-  // Move any tab-content that ended up in .main or .app into .content
+  // Move any element from .main or .app that isn't sidebar or content itself
   [mainEl, appEl].forEach(parent => {
     if (!parent) return;
     Array.from(parent.children).forEach(child => {
       if (child === contentEl || child.classList.contains('sidebar')) return;
-      if (child.classList.contains('tab-content') || child.classList.contains('perf-panel')) {
+      // Move tab-content, perf-panel, and any stray two-col or card divs
+      if (child.classList.contains('tab-content') || 
+          child.classList.contains('perf-panel') ||
+          child.classList.contains('two-col') ||
+          child.classList.contains('card')) {
         contentEl.appendChild(child);
       }
     });
