@@ -266,10 +266,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
 .dual-star-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 10px}
 .ds-lbl{font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 .conf-row{display:flex;gap:5px}
-.conf-btn{padding:4px 0;font-size:11px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);color:var(--text3);cursor:pointer;border-radius:var(--radius);transition:all .12s;flex:1;text-align:center}
-.conf-lo.sel{background:rgba(255,85,85,.1);border-color:var(--red);color:var(--red)}
-.conf-md.sel{background:rgba(255,179,71,.1);border-color:var(--amber);color:var(--amber)}
-.conf-hi.sel{background:rgba(0,229,160,.1);border-color:var(--accent);color:var(--accent)}
+
 /* ── STOP/TARGET/MAE/MFE FIELDS ── */
 .slt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .slt-field{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 8px}
@@ -282,7 +279,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
 .ds-lbl{font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 /* ── CONFIDENCE ── */
 .conf-row{display:flex;gap:5px}
-.conf-btn{padding:4px 10px;font-size:11px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);color:var(--text3);cursor:pointer;border-radius:var(--radius);transition:all .12s;flex:1;text-align:center}
+.conf-btn{padding:8px 10px;font-size:11px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);color:var(--text3);cursor:pointer;border-radius:var(--radius);transition:all .12s;flex:1;text-align:center}
 .conf-lo.sel{background:rgba(255,85,85,.1);border-color:var(--red);color:var(--red)}
 .conf-md.sel{background:rgba(255,179,71,.1);border-color:var(--amber);color:var(--amber)}
 .conf-hi.sel{background:rgba(0,229,160,.1);border-color:var(--accent);color:var(--accent)}
@@ -458,17 +455,12 @@ tbody td{padding:6px 8px;vertical-align:middle}
     <div class="ms-pip"></div><span id="masterSwitchLabel">Alerts off</span>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('journal')" data-tab="journal" id="tab-btn-journal">Journal</button>
-    <button class="tab" onclick="switchTab('performance')" data-tab="performance" id="tab-btn-performance">Performance</button>
-    <button class="tab" onclick="switchTab('coach')" data-tab="coach" id="tab-btn-coach">AI Coach</button>
-    <button class="tab" onclick="switchTab('pretrade')" data-tab="pretrade" id="tab-btn-pretrade">✅ Pre-trade</button>
-    <button class="tab" onclick="switchTab('rules')" data-tab="rules" id="tab-btn-rules">📋 Rules</button>
-    <button class="tab" onclick="switchTab('focus')" data-tab="focus" id="tab-btn-focus">👁 Focus</button>
-    <button class="tab" onclick="switchTab('market')" data-tab="market" id="tab-btn-market">Market</button>
-    <button class="tab" onclick="switchTab('settings')" data-tab="settings" id="tab-btn-settings">Settings</button>
-    <button class="tab" onclick="switchTab('memory')" data-tab="memory" id="tab-btn-memory">🧠 Memory</button>
-    <button class="tab" onclick="switchTab('lab')" data-tab="lab" id="tab-btn-lab">⚗️ Lab</button>
-    <button class="tab" onclick="switchTab('alerts')" data-tab="alerts" id="tab-btn-alerts">Alerts<span id="alertBadge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:3px;font-family:var(--mono)">0</span></button>
+    <button class="tab active" onclick="switchTab('plan')" data-tab="plan" id="tab-btn-plan">📋 Plan</button>
+    <button class="tab" onclick="switchTab('trade')" data-tab="trade" id="tab-btn-trade">⚡ Trade</button>
+    <button class="tab" onclick="switchTab('journal')" data-tab="journal" id="tab-btn-journal">📖 Journal</button>
+    <button class="tab" onclick="switchTab('performance')" data-tab="performance" id="tab-btn-performance">📊 Performance</button>
+    <button class="tab" onclick="switchTab('strategy')" data-tab="strategy" id="tab-btn-strategy">⚗️ Strategy</button>
+    <button class="tab" onclick="switchTab('settings')" data-tab="settings" id="tab-btn-settings">⚙️ Settings</button>
   </div>
 </div>
 
@@ -554,6 +546,291 @@ tbody td{padding:6px 8px;vertical-align:middle}
 <!-- ══ CONTENT ══ -->
 <div class="content">
 
+<!-- ══ TRADE TAB ══ -->
+<div class="tab-content" id="tab-trade">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0">
+
+    <!-- LEFT: Pre-trade checklist -->
+    <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+      <div class="card">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--blue);text-transform:uppercase;letter-spacing:.1em">⚡ Pre-trade Checklist</h3>
+          <select class="form-input-mono" id="tradeAcctSelect" onchange="updateTradeAcctInfo()" style="width:140px;font-size:11px">
+            <option value="">— Select account —</option>
+          </select>
+        </div>
+
+        <!-- Account balance + risk display -->
+        <div id="tradeAcctInfo" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;margin-bottom:10px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div style="text-align:center">
+              <div style="font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Balance</div>
+              <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)" id="tradeAcctBalance">$0</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Max risk</div>
+              <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--amber)" id="tradeMaxRisk">$0</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Max contracts</div>
+              <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--accent)" id="tradeMaxContracts">—</div>
+            </div>
+          </div>
+          <div style="margin-top:7px;font-size:10px;font-family:var(--mono);color:var(--text3)" id="tradeAcctRiskNote"></div>
+        </div>
+
+        <!-- Step 1: Hypothesis -->
+        <div class="section-label" style="color:var(--blue)">Step 1 — State your hypothesis first</div>
+        <textarea class="form-input" id="tradeHypothesis" placeholder="I am about to enter [Long/Short] [Instrument] because... describe the pattern, level, confirmation, and why RIGHT NOW." style="min-height:75px;border-color:rgba(85,153,255,.25);font-size:12px;margin-bottom:10px"></textarea>
+
+        <!-- Step 2: Strategy + checklist -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="section-label" style="color:var(--blue);margin:0">Step 2 — Strategy checklist</div>
+          <select class="form-input-mono" id="tradeStratSelect" onchange="renderTradeChecklist()" style="width:150px;font-size:11px">
+            <option value="">— Select strategy —</option>
+          </select>
+        </div>
+        <div id="tradeChecklist" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px">
+          <div style="padding:10px;font-size:11px;color:var(--text3);font-family:var(--mono)">Select a strategy to see checklist</div>
+        </div>
+
+        <!-- Override unchecked -->
+        <div id="tradeOverrideSection" style="display:none;margin-bottom:10px">
+          <div class="section-label" style="color:var(--amber)">⚠ Override — reason for taking trade with unchecked items</div>
+          <textarea class="form-input" id="tradeOverrideNote" placeholder="Explain why you are taking this trade despite the unchecked criteria..." style="min-height:50px;border-color:rgba(255,179,71,.3);font-size:12px"></textarea>
+        </div>
+
+        <!-- Step 3: Confidence -->
+        <div class="section-label" style="color:var(--blue)">Step 3 — Confidence</div>
+        <div class="conf-row" id="tradeConfRow" style="margin-bottom:10px">
+          <button class="conf-btn conf-lo" onclick="setTradeConf(1)">1 — Low</button>
+          <button class="conf-btn conf-md" onclick="setTradeConf(2)">2 — Medium</button>
+          <button class="conf-btn conf-hi" onclick="setTradeConf(3)">3 — High</button>
+        </div>
+
+        <!-- Step 4: Risk params -->
+        <div class="section-label" style="color:var(--blue)">Step 4 — Risk parameters</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px">
+          <div class="form-group"><label class="section-label">Direction</label>
+            <select class="form-input" id="tradeDir"><option value="Long">Long</option><option value="Short">Short</option></select>
+          </div>
+          <div class="form-group"><label class="section-label">Instrument</label>
+            <select class="form-input" id="tradeInstr">
+              <option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="section-label">Stop price</label>
+            <input type="number" class="form-input" id="tradeStop" placeholder="price" step="0.25" oninput="calcTradeRisk()">
+          </div>
+          <div class="form-group"><label class="section-label">Target price</label>
+            <input type="number" class="form-input" id="tradeTarget" placeholder="price" step="0.25" oninput="calcTradeRisk()">
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;font-size:12px;font-family:var(--mono);flex-wrap:wrap;align-items:center;margin-bottom:10px">
+          <span>Risk: <strong id="tradeRiskDisplay" style="color:var(--amber)">—</strong></span>
+          <span>R:R: <strong id="tradeRRDisplay" style="color:var(--accent)">—</strong></span>
+          <span>Stop: <strong id="tradeStopTicks" style="color:var(--text2)">—</strong></span>
+          <span id="tradeRiskFlag" style="color:var(--red);display:none">⚠ Exceeds max risk</span>
+        </div>
+
+        <!-- Screenshots -->
+        <div class="section-label" style="color:var(--blue)">Step 5 — Chart screenshots (up to 3)</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:6px">Ctrl+V to paste · drag and drop · or click to browse</div>
+        <div id="tradeSSGrid" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
+        <div id="tradeSSZone" class="import-zone" style="min-height:60px;cursor:pointer" onclick="document.getElementById('tradeSSInput').click()" ondrop="handleTradeSSDrop(event)" ondragover="event.preventDefault()">
+          <div style="font-size:16px">📷</div>
+          <div style="font-size:11px;color:var(--text3)">Price action · Indicators · Market overview</div>
+        </div>
+        <input type="file" id="tradeSSInput" accept="image/*" multiple style="display:none" onchange="handleTradeSSFiles(event)">
+
+        <!-- AI validate -->
+        <button class="ghost-btn" id="tradeAiBtn" onclick="runTradeAIValidation()" style="width:100%;margin-top:10px;background:rgba(85,153,255,.08);border-color:rgba(85,153,255,.25);color:var(--blue)">AI: validate this setup →</button>
+        <div id="tradeAiOutput" style="display:none;margin-top:8px">
+          <div class="ai-response" style="border-left-color:var(--blue)"><div style="font-family:var(--mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Setup Validation</div><div id="tradeAiText" style="font-size:12px;line-height:1.6"></div></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+          <button class="action-btn" onclick="clearTradeChecklist()">Clear</button>
+          <button class="submit-btn" onclick="logTradeChecklist()">✓ Log &amp; take the trade</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Post-trade quick capture + recent logs -->
+    <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+
+      <!-- Post-trade quick capture -->
+      <div class="card">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.1em">Post-trade Quick Capture</h3>
+          <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">Link to pre-trade log (optional)</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Capture your thoughts immediately after closing. Notes and screenshots carry over to the full trade review in Journal.</div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="section-label">Link to pre-trade entry</label>
+          <select class="form-input" id="postTradeLink">
+            <option value="">— Not linked —</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="section-label">What happened? (quick notes while fresh)</label>
+          <textarea class="form-input" id="postTradeNotes" placeholder="What went right? What went wrong? Did price do what you expected? How was your execution?..." style="min-height:90px;font-size:12px"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="section-label">Outcome screenshots (result chart, P&amp;L, up to 3)</label>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:5px">Ctrl+V to paste · drag and drop · or click to browse</div>
+          <div id="postSSGrid" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px"></div>
+          <div id="postSSZone" class="import-zone" style="min-height:55px;cursor:pointer" onclick="document.getElementById('postSSInput').click()" ondrop="handlePostSSDrop(event)" ondragover="event.preventDefault()">
+            <div style="font-size:14px">📷</div><div style="font-size:11px;color:var(--text3)">Result chart · P&amp;L screenshot</div>
+          </div>
+          <input type="file" id="postSSInput" accept="image/*" multiple style="display:none" onchange="handlePostSSFiles(event)">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="action-btn" onclick="clearPostTrade()">Clear</button>
+          <button class="submit-btn" onclick="savePostTrade()">Save quick capture</button>
+        </div>
+      </div>
+
+      <!-- Recent pre-trade logs -->
+      <div class="card" style="flex:1">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Today's Pre-trade Log</h3>
+          <button class="action-btn" onclick="switchTab('journal')">Full journal →</button>
+        </div>
+        <div id="tradePTCLog" style="display:flex;flex-direction:column;gap:7px">
+          <div class="empty-state"><div style="font-size:20px">⚡</div>No pre-trade entries today. Run the checklist before your next trade.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STRATEGY TAB ══ -->
+<div class="tab-content" id="tab-strategy">
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:14px;flex:1;min-height:0">
+
+    <!-- LEFT: Strategy list -->
+    <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+      <div class="card" style="flex-shrink:0">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--purple);text-transform:uppercase;letter-spacing:.1em">⚗️ Strategies</h3>
+          <button class="ghost-btn" onclick="createNewStrategy()" style="font-size:10px;padding:3px 8px">+ New</button>
+        </div>
+        <div id="strategyList" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <!-- Personal rules -->
+      <div class="card">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Personal Rules</h3>
+          <button class="action-btn" onclick="checkRuleViolations()">Check violations</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <input type="text" class="form-input" id="newRuleText" placeholder="e.g. Never take a 3rd trade after 2 losses" style="flex:1;font-size:11px">
+          <button class="ghost-btn" onclick="addPersonalRule()" style="font-size:10px;padding:4px 8px;flex-shrink:0">Add</button>
+        </div>
+        <div id="personalRulesList" style="display:flex;flex-direction:column;gap:5px">
+          <div class="empty-state" style="padding:10px"><div style="font-size:18px">📋</div>No rules yet</div>
+        </div>
+        <div id="ruleViolationOutput" style="display:none;margin-top:10px">
+          <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Violation Analysis</div><div id="ruleViolationText" style="font-size:12px"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Strategy editor + lab -->
+    <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+      <!-- Strategy builder -->
+      <div class="card" id="stratBuilderCard">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--purple);text-transform:uppercase;letter-spacing:.1em" id="stratBuilderTitle">Strategy Builder</h3>
+          <div style="display:flex;gap:6px">
+            <button class="ghost-btn" onclick="saveStrategyBuilder()" style="font-size:10px;padding:3px 8px">Save</button>
+            <button class="action-btn" onclick="deleteCurrentStrategy()" style="font-size:10px">Delete</button>
+          </div>
+        </div>
+        <div id="stratBuilderEmpty" style="text-align:center;padding:30px 20px;color:var(--text3);font-family:var(--mono);font-size:12px">
+          Select a strategy on the left to edit it,<br>or click + New to create one.
+        </div>
+        <div id="stratBuilderForm" style="display:none;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 120px 100px;gap:8px;align-items:end">
+            <div class="form-group"><label class="section-label">Strategy name</label>
+              <input type="text" class="form-input" id="stratBuilderName" placeholder="e.g. Trend Line Break Reversal">
+            </div>
+            <div class="form-group"><label class="section-label">Max risk %</label>
+              <input type="number" class="form-input" id="stratBuilderMaxRisk" placeholder="4" min="0.5" max="20" step="0.5">
+            </div>
+            <div class="form-group"><label class="section-label">Colour</label>
+              <div class="color-row" id="stratBuilderColorPicker" style="display:flex;gap:4px"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="section-label">Describe your strategy in plain language</label>
+            <textarea class="form-input" id="stratBuilderDesc" placeholder="Describe how you identify setups, when you enter, where you put your stop, how you manage the trade and when you exit. Be as detailed as you like — the AI will help you refine this." style="min-height:100px;font-size:12px" oninput="stratBuilderChanged()"></textarea>
+          </div>
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <label class="section-label" style="margin:0">Formal rules (AI-refined)</label>
+              <button onclick="refineStrategyWithAI()" style="padding:3px 8px;font-size:10px;font-family:var(--mono);background:rgba(204,136,255,.1);border:1px solid rgba(204,136,255,.3);color:var(--purple);cursor:pointer;border-radius:var(--radius)">✨ Refine with AI</button>
+            </div>
+            <textarea class="form-input" id="stratBuilderRules" placeholder="Formal entry/exit/risk rules will appear here after AI refinement, or write them manually..." style="min-height:80px;font-size:12px"></textarea>
+          </div>
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <label class="section-label" style="margin:0">Pre-trade checklist (one per line)</label>
+              <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">These appear in the Trade tab</span>
+            </div>
+            <textarea class="form-input" id="stratBuilderChecklist" placeholder="Confirmed trend line break&#10;Stop placed on opposing structure&#10;Risk within max limit&#10;Not in first 5 mins of session" style="min-height:90px;font-size:12px;font-family:var(--mono)"></textarea>
+          </div>
+          <!-- AI refinement chat -->
+          <div style="border-top:1px solid var(--border);padding-top:10px">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--purple);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">AI Strategy Coach</div>
+            <div id="stratChatMessages" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
+            <div style="display:flex;gap:6px">
+              <textarea id="stratChatInput" class="form-input" placeholder="Ask about your strategy, request refinements, or describe a trade that didn't work..." style="flex:1;min-height:44px;max-height:80px;resize:none;font-size:12px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendStratChat()}"></textarea>
+              <button onclick="sendStratChat()" style="width:34px;background:var(--purple);border:none;color:#fff;cursor:pointer;border-radius:var(--radius);font-size:14px;font-weight:700;flex-shrink:0">↑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Lab -->
+      <div class="card" id="stratLabCard">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:.1em">Strategy Lab</h3>
+          <button class="ghost-btn" id="stratLabRunBtn" onclick="runStrategyLab()" style="font-size:10px;padding:3px 8px">Analyse my trades →</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">The lab analyses your trade history and generates specific, data-backed amendments. Run after every 20-30 new trades.</div>
+        <div id="stratLabOutput" style="display:flex;flex-direction:column;gap:8px"></div>
+        <!-- Evolution log -->
+        <div id="stratEvoSection" style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:none">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Amendment history</div>
+          <div id="stratEvoLog" style="display:flex;flex-direction:column;gap:5px"></div>
+        </div>
+      </div>
+
+      <!-- Focus log -->
+      <div class="card">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">👁 Focus Log</h3>
+          <button class="ghost-btn" onclick="openFocusModal()" style="font-size:10px;padding:3px 8px">+ Log missed setup</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Setups you saw but chose not to take.</div>
+        <div id="focusLogList" style="display:flex;flex-direction:column;gap:6px">
+          <div class="empty-state"><div style="font-size:18px">👁</div>No missed setups logged yet.</div>
+        </div>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end">
+          <button class="action-btn" onclick="analyseFocusLog()">AI analysis →</button>
+        </div>
+        <div id="focusAnalysisOutput" style="display:none;margin-top:8px">
+          <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Focus Analysis</div><div id="focusAnalysisText" style="font-size:12px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JOURNAL TAB ══ -->
 <!-- JOURNAL TAB -->
 <div class="tab-content active" id="tab-journal">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px">
@@ -654,14 +931,124 @@ tbody td{padding:6px 8px;vertical-align:middle}
   <div class="empty-state" id="emptyState"><div style="font-size:28px">📋</div>Import your NinjaTrader CSV to begin</div>
 </div>
 
-<!-- PLAN TAB -->
-<div class="tab-content" id="tab-plan">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div class="section-label" style="margin:0">Daily Trading Plan</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="date" class="form-input-mono" id="planDate">
-      <button onclick="savePlan()" class="submit-btn">Save</button>
+<!-- ══ PLAN TAB ══ -->
+<div class="tab-content active" id="tab-plan">
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;min-height:0;flex:1">
+
+    <!-- LEFT: Morning briefing -->
+    <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+      <!-- Date + strategies for today -->
+      <div class="card" style="flex-shrink:0">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--blue);text-transform:uppercase;letter-spacing:.1em">📋 Session Plan</h3>
+          <input type="date" class="form-input-mono" id="planDate" style="width:130px" onchange="loadPlan(this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="form-group">
+            <label class="section-label">Market condition</label>
+            <select class="form-input" id="planCondition">
+              <option value="">— Select —</option>
+              <option value="trending-bull">Trending Bullish</option>
+              <option value="trending-bear">Trending Bearish</option>
+              <option value="ranging">Ranging</option>
+              <option value="wedge">Wedge / Triangle</option>
+              <option value="news-driven">News-driven</option>
+              <option value="low-vol">Low volatility</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="section-label">Directional bias</label>
+            <select class="form-input" id="planBias">
+              <option value="">Neutral</option>
+              <option value="bullish">Bullish</option>
+              <option value="bearish">Bearish</option>
+              <option value="no-bias">No bias — wait for signal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="section-label">Max trades today</label>
+            <input type="number" class="form-input" id="planMaxTrades" min="1" max="20" placeholder="e.g. 5">
+          </div>
+          <div class="form-group">
+            <label class="section-label">Max daily loss ($)</label>
+            <input type="number" class="form-input" id="planMaxLoss" min="0" placeholder="e.g. 200">
+          </div>
+        </div>
+        <!-- Strategies for today -->
+        <div class="section-label">Strategies I plan to trade today</div>
+        <div id="planStrategySelect" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+        <!-- Key levels / notes -->
+        <div class="form-group">
+          <label class="section-label">Key levels, notes, mindset</label>
+          <textarea class="form-input" id="planBias2" placeholder="Key support/resistance levels, news events to watch, mindset note..." style="min-height:60px"></textarea>
+        </div>
+        <button class="ghost-btn" onclick="savePlan()" style="width:100%">Save today's plan</button>
+      </div>
+
+      <!-- Technical analysis screenshots -->
+      <div class="card" style="flex-shrink:0">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Technical Analysis Screenshots</h3>
+          <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">Paste (Ctrl+V) or drag in up to 3 charts</span>
+        </div>
+        <div id="planSSGrid" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
+        <div id="planSSDropZone" class="import-zone" style="min-height:80px;cursor:pointer" onclick="document.getElementById('planSSInput').click()" ondrop="handlePlanSSDrop(event)" ondragover="event.preventDefault()">
+          <div style="font-size:20px">📷</div>
+          <div style="font-size:12px;color:var(--text3)">Drag charts here · Ctrl+V to paste · or click to browse</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text3)">Price action, indicators, market overview</div>
+        </div>
+        <input type="file" id="planSSInput" accept="image/*" multiple style="display:none" onchange="handlePlanSSFiles(event)">
+      </div>
+
+      <!-- AI morning briefing chat -->
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:200px">
+        <div class="card-hdr" style="flex-shrink:0">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.1em">AI Morning Briefing</h3>
+          <button class="action-btn" onclick="clearPlanChat()">Clear</button>
+        </div>
+        <div id="planChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;min-height:100px">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.6">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--accent);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Session Coach</div>
+            Good morning. Tell me about your plan for today — what setups are you watching, what's your bias, and what do you need to be careful of? Upload your charts and I'll give you feedback.
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <textarea id="planChatInput" class="form-input" placeholder="Describe your analysis, ask about setups, share your concerns..." style="flex:1;min-height:50px;max-height:100px;resize:none;font-size:12px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPlanChat()}"></textarea>
+          <button onclick="sendPlanChat()" style="width:36px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-size:16px;font-weight:700;flex-shrink:0">↑</button>
+        </div>
+      </div>
     </div>
+
+    <!-- RIGHT: Market + news -->
+    <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+      <div class="card" style="flex-shrink:0">
+        <div class="card-hdr">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Market</h3>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap">
+          <div style="position:relative;flex:1;min-width:120px">
+            <input type="text" id="planChartSymbol" class="form-input-mono" placeholder="SPY, QQQ, GC1!..." style="width:100%" onkeydown="if(event.key==='Enter')loadPlanChart()" oninput="chartSymbolSearch(this.value)" onfocus="chartSymbolSearch(this.value)" onblur="setTimeout(()=>document.getElementById('chartSuggestions2').style.display='none',200)">
+            <div id="chartSuggestions2" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);z-index:100;max-height:160px;overflow-y:auto;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
+          </div>
+          <select class="form-input-mono" id="planChartInterval" style="width:65px" onchange="loadPlanChart()">
+            <option value="15">15m</option><option value="30" selected>30m</option><option value="60">1h</option><option value="240">4h</option><option value="D">1D</option>
+          </select>
+          <button onclick="loadPlanChart()" style="padding:4px 10px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-size:11px;font-family:var(--mono);font-weight:500">Go</button>
+        </div>
+        <div id="planChartWrap" style="height:200px;background:#000;border-radius:var(--radius);overflow:hidden"></div>
+      </div>
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="card-hdr" style="flex-shrink:0">
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Market News</h3>
+          <button onclick="loadNews()" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">↻</button>
+        </div>
+        <div id="newsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          <div class="empty-state">Loading<span class="loading-dots"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:10px">
@@ -694,31 +1081,9 @@ tbody td{padding:6px 8px;vertical-align:middle}
       <div class="form-group"><label>End-of-day review</label>
         <textarea class="form-input" id="plan-review" placeholder="Did I follow my plan? What would I do differently?"></textarea>
       </div>
-      <div id="planPastEntries" style="display:none">
-        <div class="section-label">Past plans</div>
-        <div id="planList" style="display:flex;flex-direction:column;gap:4px;max-height:130px;overflow-y:auto"></div>
-      </div>
-    </div>
-  </div>
-  <!-- Plan AI Review -->
-  <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:10px;margin-top:4px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:12px;font-weight:500;color:var(--text)">AI Plan Review</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Coach analyzes your plan against today&#39;s conditions, news, and your historical stats — and flags any issues before you trade.</div>
-      </div>
-      <button id="planReviewBtn" onclick="reviewPlanWithAI()" style="padding:7px 16px;font-size:12px;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);cursor:pointer;border-radius:var(--radius);white-space:nowrap;flex-shrink:0">Review my plan →</button>
-    </div>
-    <div id="planReviewOutput" style="display:none">
-      <div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">AI Coach · Plan Review</div>
-        <div id="planReviewText" style="font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- REPLAY TAB -->
+<!-- REPLAY TAB --><!-- REPLAY TAB -->
 <div class="tab-content" id="tab-replay">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
     <div>
@@ -1143,9 +1508,17 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <div style="display:flex;flex-direction:column;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px">
           <div class="section-label">Add account</div>
           <input type="text" class="form-input" id="newAcctName" placeholder="Account name">
-          <select class="form-input" id="newAcctType">
+          <select class="form-input" id="newAcctType" onchange="togglePropFields()">
             <option value="sim">Simulated / Paper</option><option value="live">Live (Personal)</option><option value="prop">Prop Firm</option>
           </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group"><label class="section-label">Starting balance ($)</label>
+              <input type="number" class="form-input" id="newAcctBalance" placeholder="e.g. 10000" min="0">
+            </div>
+            <div class="form-group"><label class="section-label">Max risk per trade (%)</label>
+              <input type="number" class="form-input" id="newAcctMaxRisk" placeholder="4" min="0.5" max="20" step="0.5" value="4">
+            </div>
+          </div>
           <div id="propLimitsForm" style="display:none;flex-direction:column;gap:6px">
             <div class="section-label">Prop firm rules</div>
             <div style="display:flex;gap:8px">
@@ -1866,7 +2239,7 @@ function initDefaults(){
 // ══════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════
-const TABS=['journal','plan','replay','performance','screenshots','alerts','calculator','market','coach','settings','memory','lab','pretrade','rules','focus'];
+const TABS=['plan','trade','journal','performance','strategy','settings','coach','pretrade','rules','focus','memory','lab','alerts','market','screenshots','replay','calculator'];
 function switchTab(tab){
   // Reset all perf panels to overview before switching away from performance
   if(tab !== 'performance') {
@@ -1875,11 +2248,13 @@ function switchTab(tab){
     if(overview) overview.classList.add('active');
     document.querySelectorAll('.pn-btn').forEach((b,i) => b.classList.toggle('active', i===0));
   }
-  // Highlight by matching data-tab attribute, not by index
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab)?.classList.add('active');
   if(tab==='coach')populateCoachSelects();
+  if(tab==='plan'){initPlanTab();loadNews();}
+  if(tab==='trade'){renderTradePTCLog();populateTradeSelects();}
+  if(tab==='strategy'){renderStrategyList();renderPersonalRules();renderFocusLog();renderStratEvoLog();}
   if(tab==='market'){
     renderChartFavourites();
     const chartInput=document.getElementById('chartSymbolInput');
@@ -1889,11 +2264,10 @@ function switchTab(tab){
   }
   if(tab==='calculator'){renderInstrTable();document.getElementById('calc-balance').value=document.getElementById('accountBalance').value;runCalc();}
   if(tab==='performance')renderPerformance();
-  if(tab==='plan')initPlanTab();
   if(tab==='replay')initReplayTab();
   if(tab==='screenshots')renderStagingGrid();
   if(tab==='alerts'){initAlertsTab();}
-  if(tab==='settings'){renderStratManager();renderAccountManager();renderEvolLog();populateEvolSelect();}
+  if(tab==='settings'){renderAccountManager();renderStratManager();renderEvolLog();populateEvolSelect();}
   if(tab==='memory')renderMemoryTab();
   if(tab==='lab')initStratLab();
   if(tab==='pretrade')renderPTCLog();
@@ -3631,6 +4005,8 @@ function initColorPicker(containerId,selectedRef,onSelect){
 function createAccount(){
   const name=document.getElementById('newAcctName').value.trim();if(!name){alert('Enter account name.');return;}
   const type=document.getElementById('newAcctType').value;
+  const startingBalance=parseFloat(document.getElementById('newAcctBalance')?.value)||10000;
+  const maxRiskPct=parseFloat(document.getElementById('newAcctMaxRisk')?.value)||4;
   let propLimits=null;
   if(type==='prop'){
     propLimits={
@@ -3640,21 +4016,57 @@ function createAccount(){
       firmName:document.getElementById('prop-firmname').value.trim()||null,
     };
   }
-  accounts.push({id:'a'+Date.now(),name,type,color:acctSelectedColor,propLimits});
+  accounts.push({id:'a'+Date.now(),name,type,color:acctSelectedColor,propLimits,startingBalance,maxRiskPct});
   document.getElementById('newAcctName').value='';
+  if(document.getElementById('newAcctBalance'))document.getElementById('newAcctBalance').value='';
+  if(document.getElementById('newAcctMaxRisk'))document.getElementById('newAcctMaxRisk').value='4';
   save();renderAccountManager();renderSidebar();populateAllSelects();
 }
+function getAccountRunningBalance(acct){
+  const startBal = acct.startingBalance || 10000;
+  const acctTrades = trades.filter(t => {
+    const td = tradeData[t.id] || {};
+    return td.account === acct.id || t.account === acct.id;
+  });
+  const pnl = acctTrades.reduce((s,t) => s + (t.pnl||0), 0);
+  return startBal + pnl;
+}
+
 function renderAccountManager(){
   const mgr=document.getElementById('accountManager');mgr.innerHTML='';
   accounts.forEach(a=>{
     const tc=ACCT_TYPE_COLORS[a.type]||'#556070';
+    const runBal = getAccountRunningBalance(a);
+    const startBal = a.startingBalance || 10000;
+    const maxRisk = runBal * ((a.maxRiskPct||4)/100);
     const div=document.createElement('div');
-    div.style.cssText='display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)';
-    div.innerHTML=`<div style="width:9px;height:9px;border-radius:50%;background:${a.color};flex-shrink:0"></div>
-      <div style="flex:1;font-size:12px">${a.name}</div>
-      <span style="font-size:10px;font-family:var(--mono);background:${tc}22;color:${tc};padding:1px 6px;border-radius:3px">${ACCT_TYPE_LABELS[a.type]}</span>
-      ${a.propLimits?.firmName?`<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${a.propLimits.firmName}</span>`:''}
-      <button class="del-btn" onclick="deleteAccount('${a.id}')">Del</button>`;
+    div.style.cssText='display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)';
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:9px;height:9px;border-radius:50%;background:${a.color};flex-shrink:0"></div>
+        <div style="flex:1;font-size:12px;font-weight:500">${a.name}</div>
+        <span style="font-size:10px;font-family:var(--mono);background:${tc}22;color:${tc};padding:1px 6px;border-radius:3px">${ACCT_TYPE_LABELS[a.type]}</span>
+        ${a.propLimits?.firmName?`<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${a.propLimits.firmName}</span>`:''}
+        <button class="del-btn" onclick="deleteAccount('${a.id}')">Del</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div style="text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px">
+          <div style="font-size:9px;font-family:var(--mono);color:var(--text3)">Starting</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text)">$${startBal.toLocaleString()}</div>
+        </div>
+        <div style="text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px">
+          <div style="font-size:9px;font-family:var(--mono);color:var(--text3)">Current</div>
+          <div style="font-family:var(--mono);font-size:12px;color:${runBal>=startBal?'var(--accent)':'var(--red)'}">$${runBal.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        </div>
+        <div style="text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px">
+          <div style="font-size:9px;font-family:var(--mono);color:var(--text3)">Max risk</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--amber)">$${maxRisk.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        </div>
+        <div style="text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px">
+          <div style="font-size:9px;font-family:var(--mono);color:var(--text3)">Risk %</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text)">${a.maxRiskPct||4}%</div>
+        </div>
+      </div>`;
     mgr.appendChild(div);
   });
 }
@@ -6271,8 +6683,9 @@ function renderPTCChecklist() {
 
 function setPTCConf(n) {
   ptcConf = n;
+  const modal = document.getElementById('ptcOverlay');
   ['lo','md','hi'].forEach((c, i) => {
-    const btn = document.querySelector('.conf-' + c);
+    const btn = modal?.querySelector('.conf-' + c);
     if (btn) btn.classList.toggle('sel', i + 1 === n);
   });
 }
@@ -6997,40 +7410,62 @@ function setChatTab(tab) {
 
 // ── Drag to reposition ──
 (function() {
-  let dragging = false, startX, startY, startRight, startBottom;
+  let dragging = false, startX, startY, startRight, startBottom, dragTarget;
   document.addEventListener('mousedown', e => {
     const header = document.getElementById('chatHeader');
-    if (!header || !header.contains(e.target)) return;
+    const floatBtn = document.getElementById('chatFloatBtn');
+    const isHeader = header && header.contains(e.target);
+    const isFloatBtn = floatBtn && floatBtn === e.target;
+    if (!isHeader && !isFloatBtn) return;
     const btn = e.target.closest('button');
-    if (btn) return; // don't drag when clicking buttons
+    if (btn && isHeader) return; // don't drag when clicking buttons in header
+    dragTarget = isFloatBtn ? 'float' : 'panel';
     dragging = true;
     startX = e.clientX; startY = e.clientY;
-    const panel = document.getElementById('chatPanel');
-    const rect = panel.getBoundingClientRect();
-    startRight = window.innerWidth - rect.right;
-    startBottom = window.innerHeight - rect.bottom;
-    header.style.cursor = 'grabbing';
+    if (dragTarget === 'float') {
+      const floatBtn = document.getElementById('chatFloatBtn');
+      const rect = floatBtn.getBoundingClientRect();
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+      floatBtn.style.cursor = 'grabbing';
+    } else {
+      const panel = document.getElementById('chatPanel');
+      const rect = panel.getBoundingClientRect();
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+      header.style.cursor = 'grabbing';
+    }
     e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     const panel = document.getElementById('chatPanel');
+    const floatBtn = document.getElementById('chatFloatBtn');
     const dx = e.clientX - startX, dy = e.clientY - startY;
     const newRight = Math.max(8, startRight - dx);
     const newBottom = Math.max(8, startBottom - dy);
-    panel.style.right = newRight + 'px';
-    panel.style.bottom = newBottom + 'px';
-    // Also reposition float btn
-    const floatBtn = document.getElementById('chatFloatBtn');
-    const panelRect = panel.getBoundingClientRect();
-    floatBtn.style.right = newRight + 'px';
-    floatBtn.style.bottom = (window.innerHeight - panelRect.top + 10) + 'px';
+    if (dragTarget === 'float') {
+      // Dragging the float button — move it directly
+      floatBtn.style.right = newRight + 'px';
+      floatBtn.style.bottom = newBottom + 'px';
+    } else {
+      // Dragging the panel header — move both panel and float btn
+      panel.style.right = newRight + 'px';
+      panel.style.bottom = newBottom + 'px';
+      const panelRect = panel.getBoundingClientRect();
+      floatBtn.style.right = newRight + 'px';
+      floatBtn.style.bottom = (window.innerHeight - panelRect.top + 10) + 'px';
+    }
   });
   document.addEventListener('mouseup', () => {
     if (!dragging) return;
+    window._chatWasDragging = (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4);
     dragging = false;
     const header = document.getElementById('chatHeader');
+    const floatBtn = document.getElementById('chatFloatBtn');
     if (header) header.style.cursor = 'grab';
+    if (floatBtn) floatBtn.style.cursor = 'grab';
+    setTimeout(() => { window._chatWasDragging = false; }, 100);
   });
 })();
 
@@ -7451,11 +7886,741 @@ setInterval(async () => {
   });
 })();
 
+
+// ══════════════════════════════════════════
+// SESSION E — TRADE TAB, STRATEGY TAB, PLAN TAB
+// ══════════════════════════════════════════
+
+// ── State ──
+let tradeConf = 0;
+let tradeSSImages = []; // up to 3 pre-trade screenshots
+let postSSImages = []; // up to 3 post-trade screenshots
+let planSSImages = []; // up to 3 plan screenshots
+let currentStrategyId = null;
+let planChatHistory = [];
+let stratChatHistory = [];
+
+// ── CLIPBOARD PASTE SUPPORT (global) ──
+document.addEventListener('paste', function(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (!file) return;
+      // Route to active drop zone
+      const activeTab = document.querySelector('.tab-content.active')?.id;
+      if (activeTab === 'tab-trade') {
+        if (document.activeElement?.closest('#postSSZone') || document.activeElement?.id === 'postTradeNotes') {
+          addPostSS(file);
+        } else {
+          addTradeSS(file);
+        }
+      } else if (activeTab === 'tab-plan') {
+        addPlanSS(file);
+      }
+      e.preventDefault();
+    }
+  }
+});
+
+// ── SCREENSHOT HELPERS ──
+function readImageFile(file, cb) {
+  const reader = new FileReader();
+  reader.onload = ev => cb(ev.target.result);
+  reader.readAsDataURL(file);
+}
+
+function renderSSGrid(images, containerId, removeCallback) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = images.map((img, i) => `
+    <div style="position:relative;width:90px;height:70px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
+      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="${removeCallback}(${i})" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;color:#fff;cursor:pointer;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0">✕</button>
+    </div>`).join('');
+}
+
+// Trade screenshots
+function addTradeSS(file) {
+  if (tradeSSImages.length >= 3) { alert('Maximum 3 screenshots per trade.'); return; }
+  readImageFile(file, dataUrl => {
+    tradeSSImages.push({ dataUrl, name: file.name || 'screenshot' });
+    renderSSGrid(tradeSSImages, 'tradeSSGrid', 'removeTradeSS');
+  });
+}
+function removeTradeSS(i) { tradeSSImages.splice(i, 1); renderSSGrid(tradeSSImages, 'tradeSSGrid', 'removeTradeSS'); }
+function handleTradeSSDrop(e) { e.preventDefault(); [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')).forEach(addTradeSS); }
+function handleTradeSSFiles(e) { [...e.target.files].forEach(addTradeSS); e.target.value = ''; }
+
+// Post-trade screenshots
+function addPostSS(file) {
+  if (postSSImages.length >= 3) { alert('Maximum 3 screenshots.'); return; }
+  readImageFile(file, dataUrl => {
+    postSSImages.push({ dataUrl, name: file.name || 'screenshot' });
+    renderSSGrid(postSSImages, 'postSSGrid', 'removePostSS');
+  });
+}
+function removePostSS(i) { postSSImages.splice(i, 1); renderSSGrid(postSSImages, 'postSSGrid', 'removePostSS'); }
+function handlePostSSDrop(e) { e.preventDefault(); [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')).forEach(addPostSS); }
+function handlePostSSFiles(e) { [...e.target.files].forEach(addPostSS); e.target.value = ''; }
+
+// Plan screenshots
+function addPlanSS(file) {
+  if (planSSImages.length >= 3) { alert('Maximum 3 screenshots.'); return; }
+  readImageFile(file, dataUrl => {
+    planSSImages.push({ dataUrl, name: file.name || 'screenshot' });
+    renderSSGrid(planSSImages, 'planSSGrid', 'removePlanSS');
+  });
+}
+function removePlanSS(i) { planSSImages.splice(i, 1); renderSSGrid(planSSImages, 'planSSGrid', 'removePlanSS'); }
+function handlePlanSSDrop(e) { e.preventDefault(); [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')).forEach(addPlanSS); }
+function handlePlanSSFiles(e) { [...e.target.files].forEach(addPlanSS); e.target.value = ''; }
+
+// ── TRADE TAB ──
+function setTradeConf(n) {
+  tradeConf = n;
+  const modal = document.getElementById('tab-trade');
+  ['lo','md','hi'].forEach((c, i) => {
+    const btn = modal?.querySelector('.conf-' + c);
+    if (btn) btn.classList.toggle('sel', i + 1 === n);
+  });
+}
+
+function populateTradeSelects() {
+  const acctSel = document.getElementById('tradeAcctSelect');
+  const stratSel = document.getElementById('tradeStratSelect');
+  const postLink = document.getElementById('postTradeLink');
+  if (acctSel) {
+    const cur = acctSel.value;
+    acctSel.innerHTML = '<option value="">— Select account —</option>';
+    accounts.forEach(a => acctSel.innerHTML += `<option value="${a.id}">${a.name}</option>`);
+    if (cur) acctSel.value = cur;
+  }
+  if (stratSel) {
+    const cur = stratSel.value;
+    stratSel.innerHTML = '<option value="">— Select strategy —</option>';
+    strategies.forEach(s => stratSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+    if (cur) stratSel.value = cur;
+    else {
+      // Default to today's plan strategy
+      const today = new Date().toISOString().split('T')[0];
+      const plan = dailyPlans[today] || {};
+      if (plan.strat) stratSel.value = plan.strat;
+    }
+    renderTradeChecklist();
+  }
+  if (postLink) {
+    postLink.innerHTML = '<option value="">— Not linked —</option>';
+    ptcLog.slice(0, 20).forEach(entry => {
+      postLink.innerHTML += `<option value="${entry.id}">${new Date(entry.timestamp).toLocaleString()} — ${entry.dir} ${entry.instr}</option>`;
+    });
+  }
+}
+
+function updateTradeAcctInfo() {
+  const acctId = document.getElementById('tradeAcctSelect')?.value;
+  const acct = accounts.find(a => a.id === acctId);
+  const infoEl = document.getElementById('tradeAcctInfo');
+  if (!acct || !infoEl) { if (infoEl) infoEl.style.display = 'none'; return; }
+
+  const runBal = getAccountRunningBalance(acct);
+  const maxRisk = runBal * ((acct.maxRiskPct || 4) / 100);
+  const instr = INSTRUMENTS[document.getElementById('tradeInstr')?.value || 'MNQ'] || INSTRUMENTS['MNQ'];
+  const stopTicks = parseInt(document.getElementById('tradeStop')?.value) || 0;
+  let maxContracts = '—';
+  if (stopTicks > 0) {
+    const riskPerContract = stopTicks * instr.tickValue;
+    maxContracts = riskPerContract > 0 ? Math.floor(maxRisk / riskPerContract) : '—';
+  }
+
+  document.getElementById('tradeAcctBalance').textContent = '$' + runBal.toLocaleString(undefined, {maximumFractionDigits: 0});
+  document.getElementById('tradeMaxRisk').textContent = '$' + maxRisk.toLocaleString(undefined, {maximumFractionDigits: 0});
+  document.getElementById('tradeMaxContracts').textContent = maxContracts;
+  document.getElementById('tradeAcctRiskNote').textContent = `Max risk ${acct.maxRiskPct || 4}% of $${runBal.toLocaleString(undefined,{maximumFractionDigits:0})} balance`;
+  infoEl.style.display = 'block';
+}
+
+function renderTradeChecklist() {
+  const stratId = document.getElementById('tradeStratSelect')?.value;
+  const strat = strategies.find(s => s.id === stratId);
+  const checks = strat?.checklist?.length ? strat.checklist : [
+    'Confirmed a clear entry signal',
+    'Stop loss placed before entry',
+    'Risk within account maximum',
+    'Market condition suits my strategy'
+  ];
+  const el = document.getElementById('tradeChecklist');
+  if (!el) return;
+  el.innerHTML = checks.map((item, i) => `
+    <div class="ptc-check-item" style="display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-bottom:1px solid var(--border)">
+      <input type="checkbox" id="trd_c${i}" onchange="checkTradeOverride()">
+      <label for="trd_c${i}" style="font-size:12px;color:var(--text2);cursor:pointer;line-height:1.4">${item}</label>
+    </div>`).join('');
+}
+
+function checkTradeOverride() {
+  const boxes = document.querySelectorAll('#tradeChecklist input[type=checkbox]');
+  const anyUnchecked = Array.from(boxes).some(b => !b.checked);
+  const overrideEl = document.getElementById('tradeOverrideSection');
+  if (overrideEl) overrideEl.style.display = anyUnchecked ? 'block' : 'none';
+}
+
+function calcTradeRisk() {
+  updateTradeAcctInfo();
+  const stop = parseFloat(document.getElementById('tradeStop')?.value) || 0;
+  const target = parseFloat(document.getElementById('tradeTarget')?.value) || 0;
+  const instr = INSTRUMENTS[document.getElementById('tradeInstr')?.value || 'MNQ'] || INSTRUMENTS['MNQ'];
+  const acctId = document.getElementById('tradeAcctSelect')?.value;
+  const acct = accounts.find(a => a.id === acctId);
+  const runBal = acct ? getAccountRunningBalance(acct) : 10000;
+  const maxRisk = runBal * ((acct?.maxRiskPct || 4) / 100);
+
+  if (stop && target && stop !== target) {
+    const stopDist = Math.abs(stop - target) > 1000 ? Math.abs(stop) : Math.abs(stop);
+    // Both are prices — show ticks
+    const stopTicks = stopDist > 0 && instr.tickSize > 0 ? Math.round(stopDist / instr.tickSize) : 0;
+    const riskPerContract = stopTicks * instr.tickValue;
+    document.getElementById('tradeRiskDisplay').textContent = riskPerContract > 0 ? '$' + riskPerContract.toFixed(2) + '/contract' : '—';
+    document.getElementById('tradeStopTicks').textContent = stopTicks + 't stop';
+
+    if (target !== 0 && stop !== 0) {
+      const rr = Math.abs(target / stop);
+      document.getElementById('tradeRRDisplay').textContent = rr.toFixed(1) + 'R';
+    }
+
+    const exceeded = riskPerContract > maxRisk;
+    const flag = document.getElementById('tradeRiskFlag');
+    if (flag) flag.style.display = exceeded ? 'block' : 'none';
+  }
+}
+
+async function runTradeAIValidation() {
+  const hypothesis = document.getElementById('tradeHypothesis')?.value?.trim();
+  if (!hypothesis) { alert('Write your hypothesis first (Step 1).'); return; }
+  const btn = document.getElementById('tradeAiBtn');
+  const outEl = document.getElementById('tradeAiOutput');
+  const textEl = document.getElementById('tradeAiText');
+  btn.disabled = true; btn.innerHTML = 'Validating<span class="loading-dots"></span>';
+  outEl.style.display = 'block'; textEl.textContent = '';
+
+  const stratId = document.getElementById('tradeStratSelect')?.value;
+  const strat = strategies.find(s => s.id === stratId);
+  const boxes = Array.from(document.querySelectorAll('#tradeChecklist input[type=checkbox]'));
+  const checklist = strat?.checklist || [];
+  const checksStr = checklist.map((item, i) => `${boxes[i]?.checked ? '✓' : '✗'} ${item}`).join('\n') || 'No strategy selected';
+  const override = document.getElementById('tradeOverrideNote')?.value?.trim();
+  const today = new Date().toISOString().split('T')[0];
+  const plan = dailyPlans[today] || {};
+  const mem = buildMemoryContext(4);
+  const rulesStr = personalRules.length ? personalRules.map(r => '- ' + r.text).join('\n') : 'None defined';
+
+  const prompt = `You are a professional futures trading coach. Review this pre-trade hypothesis.
+
+HYPOTHESIS: "${hypothesis}"
+STRATEGY: ${strat?.name || 'none'} | RULES: ${strat?.rules || 'none'}
+CHECKLIST: ${checksStr}
+${override ? 'OVERRIDE REASON: ' + override : ''}
+PERSONAL RULES: ${rulesStr}
+TODAY PLAN: Condition ${CONDITION_LABELS[plan.condition] || 'not set'}, Bias ${plan.bias || 'not set'}
+${mem ? 'COACHING MEMORY:\n' + mem : ''}
+
+In 4-5 sentences: Is the hypothesis clear and rule-based? Any checklist concerns? Does it match today plan? Any rule conflicts? Verdict: TAKE IT / WAIT / PASS.`;
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 400, messages: [{ role: 'user', content: prompt }] }) });
+    const data = await res.json();
+    textEl.textContent = data.content?.map(c => c.text || '').join('') || 'No response.';
+  } catch(e) { textEl.textContent = 'Error connecting to AI.'; }
+  btn.disabled = false; btn.textContent = 'AI: validate this setup →';
+}
+
+function logTradeChecklist() {
+  const hypothesis = document.getElementById('tradeHypothesis')?.value?.trim();
+  if (!hypothesis) { alert('Write your hypothesis before logging.'); return; }
+  const stratId = document.getElementById('tradeStratSelect')?.value;
+  const strat = strategies.find(s => s.id === stratId);
+  const boxes = Array.from(document.querySelectorAll('#tradeChecklist input[type=checkbox]'));
+  const checklist = strat?.checklist || [];
+  const checkedItems = checklist.filter((_, i) => boxes[i]?.checked);
+  const uncheckedItems = checklist.filter((_, i) => !boxes[i]?.checked);
+
+  const entry = {
+    id: 'ptc_' + Date.now(),
+    timestamp: new Date().toISOString(),
+    hypothesis,
+    stratId, stratName: strat?.name || '',
+    confidence: tradeConf,
+    checkedItems, uncheckedItems,
+    overrideNote: document.getElementById('tradeOverrideNote')?.value?.trim() || '',
+    aiResponse: document.getElementById('tradeAiText')?.textContent || '',
+    dir: document.getElementById('tradeDir')?.value || 'Long',
+    instr: document.getElementById('tradeInstr')?.value || 'MNQ',
+    acctId: document.getElementById('tradeAcctSelect')?.value || '',
+    stop: parseFloat(document.getElementById('tradeStop')?.value) || null,
+    target: parseFloat(document.getElementById('tradeTarget')?.value) || null,
+    screenshots: tradeSSImages.map(s => s.dataUrl),
+    postNotes: '', postScreenshots: [], linkedTradeId: null
+  };
+
+  ptcLog.unshift(entry);
+  saveSessionDData();
+  clearTradeChecklist();
+  renderTradePTCLog();
+  // Update post-trade link dropdown
+  populateTradeSelects();
+}
+
+function clearTradeChecklist() {
+  ['tradeHypothesis','tradeOverrideNote','tradeStop','tradeTarget','tradeAiText'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  tradeConf = 0;
+  ['lo','md','hi'].forEach(c => document.querySelector('#tab-trade .conf-' + c)?.classList.remove('sel'));
+  tradeSSImages = [];
+  renderSSGrid([], 'tradeSSGrid', 'removeTradeSS');
+  document.getElementById('tradeAiOutput').style.display = 'none';
+  document.getElementById('tradeOverrideSection').style.display = 'none';
+  document.querySelectorAll('#tradeChecklist input[type=checkbox]').forEach(b => b.checked = false);
+}
+
+function renderTradePTCLog() {
+  const el = document.getElementById('tradePTCLog');
+  if (!el) return;
+  const today = new Date().toLocaleDateString('en-CA');
+  const todayEntries = ptcLog.filter(e => new Date(e.timestamp).toLocaleDateString('en-CA') === today);
+  if (!todayEntries.length) {
+    el.innerHTML = '<div class="empty-state"><div style="font-size:20px">⚡</div>No pre-trade entries today. Run the checklist before your next trade.</div>';
+    return;
+  }
+  el.innerHTML = todayEntries.map(e => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${new Date(e.timestamp).toLocaleTimeString()}</span>
+        <span class="badge ${e.dir==='Long'?'badge-long':'badge-short'}">${e.dir}</span>
+        <span style="font-family:var(--mono);font-size:10px">${e.instr}</span>
+        ${e.stratName ? `<span style="font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(0,229,160,.1);padding:1px 5px;border-radius:3px">${e.stratName}</span>` : ''}
+        ${e.confidence ? `<span style="font-family:var(--mono);font-size:10px;color:${['','var(--red)','var(--amber)','var(--accent)'][e.confidence]}">Conf: ${['','Low','Med','High'][e.confidence]}</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;margin-bottom:5px">"${e.hypothesis?.slice(0,120)}${(e.hypothesis?.length||0)>120?'…':''}"</div>
+      ${e.uncheckedItems?.length ? `<div style="font-size:10px;color:var(--amber);font-family:var(--mono)">⚠ ${e.uncheckedItems.join(' · ')}</div>` : '<div style="font-size:10px;color:var(--accent);font-family:var(--mono)">✓ All criteria met</div>'}
+      ${e.screenshots?.length ? `<div style="display:flex;gap:4px;margin-top:5px">${e.screenshots.map(s=>`<img src="${s}" style="width:60px;height:45px;object-fit:cover;border-radius:3px;border:1px solid var(--border)">`).join('')}</div>` : ''}
+      ${e.postNotes ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">${e.postNotes}</div>` : ''}
+    </div>`).join('');
+}
+
+// ── POST-TRADE QUICK CAPTURE ──
+function savePostTrade() {
+  const notes = document.getElementById('postTradeNotes')?.value?.trim();
+  if (!notes && postSSImages.length === 0) { alert('Add notes or at least one screenshot before saving.'); return; }
+  const linkId = document.getElementById('postTradeLink')?.value;
+  if (linkId) {
+    const entry = ptcLog.find(e => e.id === linkId);
+    if (entry) {
+      entry.postNotes = notes;
+      entry.postScreenshots = postSSImages.map(s => s.dataUrl);
+      // Also push to linked trade review if we can find the trade
+      // Link by finding today's trade that matches instrument/direction
+      const instr = entry.instr;
+      const dir = entry.dir;
+      const entryTime = new Date(entry.timestamp);
+      const matchedTrade = trades.find(t => {
+        const td = new Date(t.entryTime);
+        return t.instrument === instr && t.direction === dir &&
+          Math.abs(td - entryTime) < 4 * 3600000; // within 4 hours
+      });
+      if (matchedTrade) {
+        const td = tradeData[matchedTrade.id] || {};
+        td.notes = (td.notes ? td.notes + '\n\n' : '') + '[Quick capture] ' + notes;
+        if (!td.screenshots) td.screenshots = [];
+        td.screenshots = [...td.screenshots, ...postSSImages.map(s => s.dataUrl)].slice(0, 6);
+        tradeData[matchedTrade.id] = td;
+        entry.linkedTradeId = matchedTrade.id;
+      }
+    }
+  }
+  saveSessionDData();
+  clearPostTrade();
+  renderTradePTCLog();
+  alert('Quick capture saved' + (linkId ? ' and linked to pre-trade log.' : '.'));
+}
+
+function clearPostTrade() {
+  const notes = document.getElementById('postTradeNotes'); if (notes) notes.value = '';
+  postSSImages = [];
+  renderSSGrid([], 'postSSGrid', 'removePostSS');
+}
+
+// ── STRATEGY TAB ──
+function renderStrategyList() {
+  const el = document.getElementById('strategyList');
+  if (!el) return;
+  el.innerHTML = strategies.map(s => `
+    <div onclick="selectStrategy('${s.id}')" style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:${currentStrategyId===s.id?'var(--bg4)':'var(--bg3)'};border:1px solid ${currentStrategyId===s.id?'var(--accent)':'var(--border)'};border-radius:var(--radius);cursor:pointer;transition:all .12s">
+      <div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+      <div style="flex:1;font-size:12px;font-weight:500">${s.name}</div>
+      <div style="font-size:10px;font-family:var(--mono);color:var(--text3)">${s.maxRiskPct||4}%</div>
+    </div>`).join('') ||
+    '<div style="font-size:12px;color:var(--text3);font-family:var(--mono);text-align:center;padding:14px">No strategies yet.<br>Click + New to add one.</div>';
+}
+
+function selectStrategy(id) {
+  currentStrategyId = id;
+  const s = strategies.find(s => s.id === id);
+  if (!s) return;
+  renderStrategyList();
+  document.getElementById('stratBuilderEmpty').style.display = 'none';
+  document.getElementById('stratBuilderForm').style.display = 'flex';
+  document.getElementById('stratBuilderTitle').textContent = s.name;
+  document.getElementById('stratBuilderName').value = s.name;
+  document.getElementById('stratBuilderMaxRisk').value = s.maxRiskPct || 4;
+  document.getElementById('stratBuilderDesc').value = s.description || '';
+  document.getElementById('stratBuilderRules').value = s.rules || '';
+  document.getElementById('stratBuilderChecklist').value = (s.checklist || []).join('\n');
+  document.getElementById('stratChatMessages').innerHTML = '';
+  stratChatHistory = [];
+  initColorPicker('stratBuilderColorPicker', s.color || '#00E5A0', c => {
+    const strat = strategies.find(x => x.id === currentStrategyId); if (strat) strat.color = c;
+  });
+}
+
+function createNewStrategy() {
+  const newS = {
+    id: 's' + Date.now(),
+    name: 'New Strategy',
+    color: '#00E5A0',
+    description: '',
+    rules: '',
+    checklist: ['Confirmed entry signal', 'Stop loss placed', 'Risk within maximum', 'Condition suits strategy'],
+    maxRiskPct: 4
+  };
+  strategies.push(newS);
+  save();
+  renderStrategyList();
+  populateAllSelects();
+  selectStrategy(newS.id);
+}
+
+function saveStrategyBuilder() {
+  const s = strategies.find(x => x.id === currentStrategyId);
+  if (!s) return;
+  s.name = document.getElementById('stratBuilderName')?.value?.trim() || s.name;
+  s.description = document.getElementById('stratBuilderDesc')?.value || '';
+  s.rules = document.getElementById('stratBuilderRules')?.value || '';
+  s.checklist = (document.getElementById('stratBuilderChecklist')?.value || '').split('\n').filter(l => l.trim());
+  s.maxRiskPct = parseFloat(document.getElementById('stratBuilderMaxRisk')?.value) || 4;
+  document.getElementById('stratBuilderTitle').textContent = s.name;
+  save();
+  renderStrategyList();
+  renderStratManager();
+  populateAllSelects();
+  renderTradeChecklist();
+}
+
+function deleteCurrentStrategy() {
+  if (!currentStrategyId) return;
+  if (!confirm('Delete this strategy? This cannot be undone.')) return;
+  strategies = strategies.filter(s => s.id !== currentStrategyId);
+  currentStrategyId = null;
+  document.getElementById('stratBuilderEmpty').style.display = 'block';
+  document.getElementById('stratBuilderForm').style.display = 'none';
+  save();
+  renderStrategyList();
+  populateAllSelects();
+}
+
+function stratBuilderChanged() {
+  // Auto-save description as user types (debounced)
+  if (window._stratSaveTimer) clearTimeout(window._stratSaveTimer);
+  window._stratSaveTimer = setTimeout(saveStrategyBuilder, 2000);
+}
+
+async function refineStrategyWithAI() {
+  const desc = document.getElementById('stratBuilderDesc')?.value?.trim();
+  if (!desc) { alert('Describe your strategy first.'); return; }
+  const strat = strategies.find(s => s.id === currentStrategyId);
+  const s = computeStats(trades.filter(t => (tradeData[t.id]||{}).strategy === currentStrategyId));
+  const prompt = `You are a professional futures trading coach helping a trader formalise their strategy.
+
+STRATEGY DESCRIPTION (in trader's own words):
+"${desc}"
+
+CURRENT RULES: ${strat?.rules || 'none yet'}
+
+${trades.length > 10 ? `HISTORICAL PERFORMANCE (${s.total} trades): Win rate ${s.wr.toFixed(0)}%, Avg R ${s.withR ? fmtR(s.avgR) : 'no data'}` : ''}
+
+Your task:
+1. Write formal, specific entry rules (3-5 bullet points)
+2. Write formal exit rules (stop and target logic)
+3. Write 4-6 pre-trade checklist items (the yes/no questions to ask before every trade)
+4. Identify one potential weakness to watch for
+
+Format your response as:
+RULES:
+[rules here]
+
+CHECKLIST:
+[checklist items, one per line]
+
+COACHING NOTE:
+[one paragraph on a key weakness or refinement]`;
+
+  const btn = document.querySelector('[onclick="refineStrategyWithAI()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Refining...'; }
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 800, messages: [{ role: 'user', content: prompt }] }) });
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+
+    // Parse out rules and checklist
+    const rulesMatch = text.match(/RULES:\n([\s\S]*?)(?:\n\nCHECKLIST:|$)/);
+    const checklistMatch = text.match(/CHECKLIST:\n([\s\S]*?)(?:\n\nCOACHING|$)/);
+    const coachMatch = text.match(/COACHING NOTE:\n([\s\S]*?)$/);
+
+    if (rulesMatch) document.getElementById('stratBuilderRules').value = rulesMatch[1].trim();
+    if (checklistMatch) {
+      const items = checklistMatch[1].trim().split('\n').map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+      document.getElementById('stratBuilderChecklist').value = items.join('\n');
+    }
+
+    // Show coaching note in chat
+    if (coachMatch) {
+      appendStratChat('coach', coachMatch[1].trim());
+    } else {
+      appendStratChat('coach', text);
+    }
+    saveStrategyBuilder();
+  } catch(e) {
+    appendStratChat('coach', 'Error connecting to AI. Please try again.');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✨ Refine with AI'; }
+}
+
+async function sendStratChat() {
+  const input = document.getElementById('stratChatInput');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  input.value = '';
+  appendStratChat('user', msg);
+  stratChatHistory.push({ role: 'user', content: msg });
+
+  const strat = strategies.find(s => s.id === currentStrategyId);
+  const systemPrompt = `You are a professional futures trading coach helping a trader develop and refine their strategy. Current strategy: "${strat?.name}". Description: "${strat?.description || 'not set'}". Rules: "${strat?.rules || 'not set'}". Be specific, actionable, and reference their actual strategy text.`;
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 600, system: systemPrompt, messages: stratChatHistory }) });
+    const data = await res.json();
+    const reply = data.content?.map(c => c.text || '').join('') || 'No response.';
+    stratChatHistory.push({ role: 'assistant', content: reply });
+    appendStratChat('coach', reply);
+  } catch(e) { appendStratChat('coach', 'Error connecting to AI.'); }
+}
+
+function appendStratChat(role, text) {
+  const el = document.getElementById('stratChatMessages');
+  if (!el) return;
+  const div = document.createElement('div');
+  div.style.cssText = `background:${role==='user'?'rgba(85,153,255,.1)':'var(--bg3)'};border:1px solid var(--border);border-radius:8px;padding:9px 11px`;
+  div.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:${role==='user'?'var(--blue)':'var(--purple)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${role==='user'?'You':'Strategy Coach'}</div><div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${text}</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderStratEvoLog() {
+  const el = document.getElementById('stratEvoLog');
+  const section = document.getElementById('stratEvoSection');
+  if (!el) return;
+  if (!evolutionLog.length) { if(section) section.style.display = 'none'; return; }
+  if(section) section.style.display = 'block';
+  el.innerHTML = evolutionLog.slice(0,10).map(e => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:11px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${new Date(e.date).toLocaleDateString()}</span>
+        <span style="font-family:var(--mono);font-size:10px;background:rgba(0,229,160,.1);color:var(--accent);padding:1px 5px;border-radius:3px">${e.category||'general'}</span>
+      </div>
+      <div style="color:var(--text2);line-height:1.5">${e.rule}</div>
+    </div>`).join('');
+}
+
+// ── PLAN TAB ──
+async function sendPlanChat() {
+  const input = document.getElementById('planChatInput');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  input.value = '';
+  appendPlanChat('user', msg);
+  planChatHistory.push({ role: 'user', content: msg });
+
+  const today = new Date().toISOString().split('T')[0];
+  const plan = dailyPlans[today] || {};
+  const s = computeStats(getTradesForPeriod('month'));
+  const mem = buildMemoryContext(4);
+
+  const systemPrompt = `You are a professional futures trading coach conducting a pre-session morning briefing. Today's plan: condition ${CONDITION_LABELS[plan.condition]||'not set'}, bias ${plan.bias||'not set'}, max trades ${plan.maxtrades||'not set'}, max loss $${plan.maxloss||'not set'}. 30-day stats: ${s.total} trades, ${s.wr.toFixed(0)}% win rate. ${mem?'Coaching memory: '+mem:''} Be concise and focused on what matters for this session.`;
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 500, system: systemPrompt, messages: planChatHistory }) });
+    const data = await res.json();
+    const reply = data.content?.map(c => c.text || '').join('') || 'No response.';
+    planChatHistory.push({ role: 'assistant', content: reply });
+    appendPlanChat('coach', reply);
+  } catch(e) { appendPlanChat('coach', 'Error connecting to AI.'); }
+}
+
+function appendPlanChat(role, text) {
+  const el = document.getElementById('planChatMessages');
+  if (!el) return;
+  const div = document.createElement('div');
+  div.style.cssText = `background:${role==='user'?'rgba(85,153,255,.1)':'var(--bg3)'};border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:12px;flex-shrink:0`;
+  div.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:${role==='user'?'var(--blue)':'var(--accent)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${role==='user'?'You':'Session Coach'}</div><div style="color:var(--text2);line-height:1.6;white-space:pre-wrap">${text}</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearPlanChat() { document.getElementById('planChatMessages').innerHTML = ''; planChatHistory = []; }
+
+function loadPlanChart() {
+  const sym = document.getElementById('planChartSymbol')?.value?.trim() || 'AMEX:SPY';
+  const interval = document.getElementById('planChartInterval')?.value || '30';
+  const wrap = document.getElementById('planChartWrap');
+  if (!wrap) return;
+  const src = `https://s.tradingview.com/widgetembed/?frameElementId=plan_chart&symbol=${encodeURIComponent(sym)}&interval=${interval}&hidesidetoolbar=1&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&locale=en`;
+  wrap.innerHTML = `<iframe src="${src}" frameborder="0" style="width:100%;height:100%;border:none;display:block"></iframe>`;
+}
+
+function renderPlanStrategySelect() {
+  const el = document.getElementById('planStrategySelect');
+  if (!el) return;
+  const today = new Date().toISOString().split('T')[0];
+  const plan = dailyPlans[today] || {};
+  const selected = plan.strategies || [];
+  el.innerHTML = strategies.map(s => {
+    const isSel = selected.includes(s.id);
+    return `<button onclick="togglePlanStrategy('${s.id}')" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:${isSel?s.color+'22':'var(--bg3)'};border:1px solid ${isSel?s.color:'var(--border)'};color:${isSel?s.color:'var(--text2)'};cursor:pointer;border-radius:var(--radius);transition:all .15s">${s.name}</button>`;
+  }).join('') || '<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">No strategies yet — add them in the Strategy tab</span>';
+}
+
+function togglePlanStrategy(id) {
+  const today = new Date().toISOString().split('T')[0];
+  if (!dailyPlans[today]) dailyPlans[today] = {};
+  const plan = dailyPlans[today];
+  if (!plan.strategies) plan.strategies = [];
+  const idx = plan.strategies.indexOf(id);
+  if (idx >= 0) plan.strategies.splice(idx, 1);
+  else plan.strategies.push(id);
+  renderPlanStrategySelect();
+}
+
+// Override initPlanTab to use new elements
+function initPlanTab() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('planDate').value = today;
+  loadPlan(today);
+  renderPlanStrategySelect();
+  loadPlanChart();
+}
+
+// Override loadPlan to handle new fields
+const _origLoadPlan = window.loadPlan;
+window.loadPlan = function(dateStr) {
+  if (!dateStr) return;
+  const plan = dailyPlans[dateStr] || {};
+  const condEl = document.getElementById('planCondition');
+  const biasEl = document.getElementById('planBias');
+  const maxTradesEl = document.getElementById('planMaxTrades');
+  const maxLossEl = document.getElementById('planMaxLoss');
+  const bias2El = document.getElementById('planBias2');
+  if (condEl) condEl.value = plan.condition || '';
+  if (biasEl) biasEl.value = plan.bias || '';
+  if (maxTradesEl) maxTradesEl.value = plan.maxtrades || '';
+  if (maxLossEl) maxLossEl.value = plan.maxloss || '';
+  if (bias2El) bias2El.value = plan.notes || '';
+  renderPlanStrategySelect();
+};
+
+// Override savePlan for new fields
+const _origSavePlan = window.savePlan;
+window.savePlan = function() {
+  const dateStr = document.getElementById('planDate')?.value;
+  if (!dateStr) return;
+  if (!dailyPlans[dateStr]) dailyPlans[dateStr] = {};
+  const plan = dailyPlans[dateStr];
+  plan.condition = document.getElementById('planCondition')?.value || '';
+  plan.bias = document.getElementById('planBias')?.value || '';
+  plan.maxtrades = parseInt(document.getElementById('planMaxTrades')?.value) || null;
+  plan.maxloss = parseFloat(document.getElementById('planMaxLoss')?.value) || null;
+  plan.notes = document.getElementById('planBias2')?.value || '';
+  plan.screenshots = planSSImages.map(s => s.dataUrl);
+  save();
+  // Update session bar
+  updateSessionBar();
+};
+
+// Plan chart symbol suggestions
+function chartSymbolSearch2(query) {
+  const box = document.getElementById('chartSuggestions2');
+  if (!box) return;
+  chartSymbolSearch(query);
+  // Mirror results to suggestions2
+  const box1 = document.getElementById('chartSuggestions');
+  if (box1 && box1.innerHTML) {
+    box.innerHTML = box1.innerHTML.replace(/selectChartSymbol/g, 'selectPlanChartSymbol');
+    box.style.display = box1.style.display;
+  }
+}
+
+function selectPlanChartSymbol(sym) {
+  const input = document.getElementById('planChartSymbol');
+  if (input) input.value = sym;
+  document.getElementById('chartSuggestions2').style.display = 'none';
+  loadPlanChart();
+}
+
+// Hook plan chart input to use suggestions
+document.addEventListener('DOMContentLoaded', () => {
+  const planInput = document.getElementById('planChartSymbol');
+  if (planInput) {
+    planInput.addEventListener('input', e => chartSymbolSearch2(e.target.value));
+    planInput.addEventListener('focus', e => chartSymbolSearch2(e.target.value));
+    planInput.addEventListener('blur', () => setTimeout(() => {
+      if (document.getElementById('chartSuggestions2')) document.getElementById('chartSuggestions2').style.display = 'none';
+    }, 200));
+  }
+});
+
+// ── SIDEBAR NAV UPDATE ──
+// Update sidebar nav buttons to reflect new tab structure
+const _origRenderSidebarNav = window.renderSidebar;
+document.addEventListener('DOMContentLoaded', () => {
+  // Update nav panel buttons
+  const navBtns = document.querySelectorAll('#sidebarNav button[onclick^="switchTab"]');
+  // Already handled by existing sidebar nav — just ensure new tabs are accessible
+  populateTradeSelects();
+  renderStrategyList();
+  renderTradePTCLog();
+});
+
+// Override initApp to start on Plan tab
+const _origInitApp = window.initApp;
+window.initApp = async function() {
+  await _origInitApp();
+  switchTab('plan');
+};
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
 <!-- ── GUIDE AGENT FLOAT BUTTON ── -->
-<div id="chatFloatBtn" title="AI Guide &amp; Coach" style="position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(0,229,160,.4);z-index:300;transition:all .2s;user-select:none;flex-direction:column;gap:0" onclick="setChatSize('compact')">
+<div id="chatFloatBtn" title="AI Guide &amp; Coach (drag to move)" style="position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(0,229,160,.4);z-index:300;user-select:none;flex-direction:column;gap:0" id="chatFloatBtn" onclick="if(!window._chatWasDragging)setChatSize('compact')">
   <span style="font-size:20px">💬</span>
   <div id="chatNudgeDot" style="display:none;position:absolute;top:6px;right:6px;width:10px;height:10px;background:var(--red);border-radius:50%;border:2px solid var(--bg)"></div>
 </div>
