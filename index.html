@@ -706,7 +706,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
       <!-- Recent pre-trade logs -->
       <div class="card" style="flex:1">
         <div class="card-hdr">
-          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Today's Pre-trade Log</h3>
+          <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Today's Logs</h3>
           <button class="action-btn" onclick="switchTab('journal')">Full journal →</button>
         </div>
         <div id="tradePTCLog" style="display:flex;flex-direction:column;gap:7px">
@@ -8217,7 +8217,8 @@ function renderTradePTCLog() {
       <div style="font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;margin-bottom:5px">"${e.hypothesis?.slice(0,120)}${(e.hypothesis?.length||0)>120?'…':''}"</div>
       ${e.uncheckedItems?.length ? `<div style="font-size:10px;color:var(--amber);font-family:var(--mono)">⚠ ${e.uncheckedItems.join(' · ')}</div>` : '<div style="font-size:10px;color:var(--accent);font-family:var(--mono)">✓ All criteria met</div>'}
       ${e.screenshots?.length ? `<div style="display:flex;gap:4px;margin-top:5px">${e.screenshots.map(s=>`<img src="${s}" style="width:60px;height:45px;object-fit:cover;border-radius:3px;border:1px solid var(--border)">`).join('')}</div>` : ''}
-      ${e.postNotes ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">${e.postNotes}</div>` : ''}
+      ${e.postNotes ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Exit notes</div><div style="font-size:11px;color:var(--text2);line-height:1.5">${e.postNotes}</div></div>` : ''}
+      ${e.postExit ? `<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)"><div style="font-family:var(--mono);font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Post-exit observations</div><div style="font-size:11px;color:var(--text2);line-height:1.5">${e.postExit}</div></div>` : ''}
       <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
         <button onclick="openEditPTC('${e.id}')" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Edit</button>
         <button onclick="deleteEditPTC('${e.id}')" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Delete</button>
@@ -9576,13 +9577,13 @@ function openEditPTC(id) {
   _editingPTCConf = entry.confidence || 0;
   setEditPTCConf(_editingPTCConf);
 
-  // Load existing post-trade screenshots
   _editPostSSImages = (entry.postScreenshots || []).map(dataUrl => ({ dataUrl, name: 'screenshot' }));
   renderEditPostSSGrid();
-
+  const postExitEl = document.getElementById('editPTCPostExit');
+  if (postExitEl) postExitEl.value = entry.postExit || '';
   const modal = document.getElementById('editPTCModal');
   if (modal) modal.style.display = 'flex';
-  setTimeout(() => document.getElementById('editPTCHypothesis')?.focus(), 50);
+  setTimeout(() => { renderEditChecklist(); document.getElementById('editPTCHypothesis')?.focus(); }, 50);
 }
 
 function setEditPTCConf(n) {
@@ -9614,8 +9615,20 @@ function saveEditPTC() {
   entry.target = parseFloat(document.getElementById('editPTCTarget')?.value) || entry.target;
   entry.overrideNote = document.getElementById('editPTCOverride')?.value?.trim() || '';
   entry.postNotes = document.getElementById('editPTCPostNotes')?.value?.trim() || '';
+  entry.postExit = document.getElementById('editPTCPostExit')?.value?.trim() || '';
   entry.postScreenshots = _editPostSSImages.map(s => s.dataUrl);
   entry.confidence = _editingPTCConf;
+  const stratSelSave = document.getElementById('editPTCStrat');
+  const stratSave = strategies.find(s => s.id === stratSelSave?.value);
+  if (stratSave && stratSave.checklist && stratSave.checklist.length) {
+    const chkd = [], unchkd = [];
+    stratSave.checklist.forEach((item, i) => {
+      const cb = document.getElementById('edit_chk' + i);
+      (cb && cb.checked ? chkd : unchkd).push(item);
+    });
+    entry.checkedItems = chkd;
+    entry.uncheckedItems = unchkd;
+  }
 
   const stratSel = document.getElementById('editPTCStrat');
   if (stratSel) {
@@ -9689,6 +9702,29 @@ document.addEventListener('paste', function(e) {
     }
   }
 }, true); // capture phase so it runs before the global paste handler
+
+
+// ── Edit modal checklist ──
+function renderEditChecklist() {
+  const el = document.getElementById('editPTCChecklist');
+  if (!el) return;
+  const stratId = document.getElementById('editPTCStrat')?.value;
+  const strat = strategies.find(s => s.id === stratId);
+  const items = strat && strat.checklist && strat.checklist.length ? strat.checklist : [];
+  if (!items.length) {
+    el.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--text3);font-family:var(--mono)">Select a strategy to see checklist items.</div>';
+    return;
+  }
+  const entry = ptcLog.find(function(e) { return e.id === _editingPTCId; });
+  const checkedSet = new Set(entry ? (entry.checkedItems || []) : []);
+  el.innerHTML = items.map(function(item, i) {
+    const isChecked = checkedSet.has(item);
+    return '<div style="display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer" onclick="var cb=document.getElementById(\'edit_chk' + i + '\');if(cb)cb.checked=!cb.checked">' +
+      '<input type="checkbox" id="edit_chk' + i + '"' + (isChecked ? ' checked' : '') + ' style="margin-top:2px;flex-shrink:0" onclick="event.stopPropagation()">' +
+      '<label for="edit_chk' + i + '" style="font-size:12px;color:var(--text2);cursor:pointer;line-height:1.4">' + item + '</label>' +
+      '</div>';
+  }).join('');
+}
 
 </script>
 
@@ -9877,7 +9913,12 @@ document.addEventListener('paste', function(e) {
       </div>
       <div class="form-group">
         <label class="section-label">Strategy</label>
-        <select class="form-input" id="editPTCStrat"></select>
+        <select class="form-input" id="editPTCStrat" onchange="renderEditChecklist()"></select>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Checklist items</label>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:6px">Tick the items that were met at time of entry</div>
+        <div id="editPTCChecklist" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden"></div>
       </div>
       <div class="form-group">
         <label class="section-label">Confidence</label>
@@ -9891,9 +9932,16 @@ document.addEventListener('paste', function(e) {
         <label class="section-label">Override note (if criteria not fully met)</label>
         <textarea class="form-input" id="editPTCOverride" style="min-height:50px;font-size:12px"></textarea>
       </div>
-      <div class="form-group">
-        <label class="section-label">Post-trade notes</label>
-        <textarea class="form-input" id="editPTCPostNotes" style="min-height:60px;font-size:12px"></textarea>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Post-trade capture</div>
+        <div class="form-group">
+          <label class="section-label">Exit thesis / during trade notes</label>
+          <textarea class="form-input" id="editPTCPostNotes" placeholder="What happened during the trade? Your exit reasoning. Stop/target adjustments and why." style="min-height:80px;font-size:12px"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="section-label">Post-exit observations</label>
+          <textarea class="form-input" id="editPTCPostExit" placeholder="After exiting what did price do? Did your hypothesis prove correct? What would you do differently?" style="min-height:60px;font-size:12px"></textarea>
+        </div>
       </div>
       <div class="form-group">
         <label class="section-label">Outcome screenshots</label>
