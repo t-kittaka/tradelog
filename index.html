@@ -1545,563 +1545,6 @@ tbody td{padding:6px 8px;vertical-align:middle}
       </div>
     </div>
   </div>
-<!-- TRADE MODAL -->
-<div class="modal-overlay hidden" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-header">
-      <button onclick="navigateModal(-1)" id="modalPrev" style="background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:3px 10px;font-size:13px;transition:all .15s" title="Previous trade">←</button>
-      <h2 id="modalTitle" style="flex:1;text-align:center">Trade Review</h2>
-      <button onclick="navigateModal(1)" id="modalNext" style="background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:3px 10px;font-size:13px;transition:all .15s" title="Next trade">→</button>
-      <button class="modal-close" onclick="closeModal()" style="margin-left:8px">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-grid" id="modalDataGrid"></div>
-      <div class="risk-flag hidden" id="modalRiskFlag">⚠ <strong>Risk violation:</strong> <span id="riskFlagText"></span></div>
-      <!-- STOP / TARGET / SLIPPAGE -->
-      <div>
-        <div class="section-label">Trade management — stop, target & slippage</div>
-        <div class="slt-grid">
-          <div class="slt-field">
-            <div class="slt-lbl">Stop loss price</div>
-            <input class="slt-inp" type="number" id="modalStopLoss" placeholder="e.g. 21420.50" step="0.25" oninput="recalcTradeMetrics()">
-            <div class="slt-derived" id="modalSLTicks">— ticks from entry</div>
-          </div>
-          <div class="slt-field">
-            <div class="slt-lbl">Target price</div>
-            <input class="slt-inp" type="number" id="modalTarget" placeholder="e.g. 21520.00" step="0.25" oninput="recalcTradeMetrics()">
-            <div class="slt-derived" id="modalTPTicks">— ticks to target</div>
-          </div>
-          <div class="slt-field" style="border-color:rgba(0,229,160,.3)">
-            <div class="slt-lbl">Planned R:R</div>
-            <div class="slt-inp" id="modalPlannedRR" style="color:var(--accent)">—</div>
-            <div class="slt-derived" id="modalRealizedR">Realized: —</div>
-          </div>
-          <div class="slt-field">
-            <div class="slt-lbl">Slippage (ticks)</div>
-            <input class="slt-inp" type="number" id="modalSlippage" placeholder="0" step="1" oninput="saveTradeData()">
-            <div class="slt-derived">+ bad fill &nbsp;·&nbsp; − good fill</div>
-          </div>
-        </div>
-      </div>
-      <!-- MAE / MFE / INITIAL RISK / LEFT ON TABLE -->
-      <div>
-        <div class="section-label">Excursion tracking (MAE / MFE) + initial risk</div>
-        <div class="slt-grid">
-          <div class="slt-field">
-            <div class="slt-lbl">MAE ticks (worst point)</div>
-            <input class="slt-inp" type="number" id="modalMAE" placeholder="e.g. 12" min="0" step="1" oninput="recalcTradeMetrics()">
-            <div class="slt-derived">Max adverse before resolve</div>
-          </div>
-          <div class="slt-field">
-            <div class="slt-lbl">MFE ticks (best point)</div>
-            <input class="slt-inp" type="number" id="modalMFE" placeholder="e.g. 28" min="0" step="1" oninput="recalcTradeMetrics()">
-            <div class="slt-derived">Max favorable before exit</div>
-          </div>
-          <div class="slt-field">
-            <div class="slt-lbl">Initial risk ($)</div>
-            <input class="slt-inp" type="number" id="modalInitialRisk" placeholder="e.g. 25.00" step="0.01" oninput="updateInitialRisk(this.value)">
-            <div class="slt-derived" id="rMultipleDisplay" style="color:var(--accent)">→ R-multiple</div>
-          </div>
-          <div class="slt-field" style="border-color:rgba(255,179,71,.3)">
-            <div class="slt-lbl">Left on table (ticks)</div>
-            <div class="slt-inp" id="modalLeftOnTable" style="color:var(--amber)">—</div>
-            <div class="slt-derived">MFE minus actual move</div>
-          </div>
-        </div>
-      </div>
-      <!-- CONFIDENCE + HYPOTHESIS -->
-      <div class="two-col">
-        <div>
-          <div class="section-label">Pre-trade confidence</div>
-          <div class="conf-row" id="modalConfRow">
-            <button class="conf-btn conf-lo" onclick="setConf(1)">1 — Low</button>
-            <button class="conf-btn conf-md" onclick="setConf(2)">2 — Med</button>
-            <button class="conf-btn conf-hi" onclick="setConf(3)">3 — High</button>
-          </div>
-          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px">Your conviction level before entering</div>
-        </div>
-        <div>
-          <div class="section-label">Trade hypothesis (pre-entry thesis)</div>
-          <textarea class="form-input" id="modalHypothesis" placeholder="I entered because… (what you saw before the trade)" oninput="saveTradeData()" style="min-height:42px;font-size:11px"></textarea>
-        </div>
-      </div>
-      <!-- DUAL QUALITY SCORES -->
-      <div>
-        <div class="section-label">Quality scores — rate setup and execution independently</div>
-        <div class="dual-stars">
-          <div class="dual-star-item">
-            <div class="ds-lbl">Setup quality ★ — was this a valid, well-identified setup?</div>
-            <div class="star-rating stars-row" id="setupStarRow"></div>
-            <div style="font-size:10px;color:var(--text3);margin-top:3px" id="setupStarHint">Not rated</div>
-          </div>
-          <div class="dual-star-item">
-            <div class="ds-lbl">Execution quality ★ — did you execute your plan well?</div>
-            <div class="star-rating stars-row" id="execStarRow"></div>
-            <div style="font-size:10px;color:var(--text3);margin-top:3px" id="execStarHint">Not rated</div>
-          </div>
-        </div>
-      </div>
-      <!-- Market condition -->
-      <div>
-        <div class="section-label">Market condition during trade</div>
-        <select class="form-input" id="modalCondition" onchange="saveTradeData();document.getElementById('modalConditionHint').style.display='none'" style="max-width:300px">
-          <option value="">— Select condition —</option>
-          <option value="trending-bull">Trending — Bullish</option>
-          <option value="trending-bear">Trending — Bearish</option>
-          <option value="ranging">Ranging / Sideways</option>
-          <option value="wedge">Wedge / Triangle compression</option>
-          <option value="news-driven">News-driven / High volatility</option>
-          <option value="low-vol">Low volatility / Choppy</option>
-        </select>
-        <div id="modalConditionHint" style="display:none;font-size:11px;color:var(--blue);font-family:var(--mono);margin-top:4px">Defaulted from daily plan — change if this trade differed</div>
-      </div>
-      <!-- Account + Strategy -->
-      <div class="two-col">
-        <div>
-          <div class="section-label">Account</div>
-          <select class="form-input" id="modalAcct" onchange="saveTradeData()"></select>
-        </div>
-        <div>
-          <div class="section-label">Strategy</div>
-          <select class="form-input" id="modalStrat" onchange="onModalStratChange()"></select>
-        </div>
-      </div>
-      <!-- Checklist -->
-      <div>
-        <div class="section-label">Strategy checklist</div>
-        <div class="checklist" id="checklistItems"></div>
-      </div>
-      <!-- Screenshot -->
-      <div>
-        <div class="section-label">Chart screenshot</div>
-        <div id="screenshotArea" style="border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px" onclick="document.getElementById('screenshotInput').click()">
-          <div style="font-size:16px;color:var(--text3)">📷</div>
-          <div style="font-size:12px;color:var(--text3)">Click to attach chart screenshot</div>
-          <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" style="display:none">
-        </div>
-        <img id="screenshotPreview" class="hidden" onclick="document.getElementById('screenshotInput').click()" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);max-height:180px;object-fit:cover;cursor:pointer;margin-top:6px" title="Click to replace">
-      </div>
-      <!-- Notes -->
-      <div>
-        <div class="section-label">Notes</div>
-        <textarea class="form-input" id="modalNotes" placeholder="Entry rationale, what you saw, what you'd do differently..." oninput="saveTradeData()" style="min-height:80px"></textarea>
-      </div>
-      <!-- AI feedback -->
-      <button class="ai-btn" id="aiFeedbackBtn" onclick="getAIFeedback()">Get AI feedback →</button>
-      <div id="aiFeedbackOutput" style="display:none">
-        <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">AI Analysis</div><div id="aiFeedbackText"></div></div>
-      </div>
-      <div style="display:flex;justify-content:flex-end"><button class="submit-btn" onclick="closeModal()">Save + Close</button></div>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- LIGHTBOX -->
-<!-- PRE-TRADE CHECKLIST TAB -->
-<div class="tab-content" id="tab-pretrade">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text)">Pre-trade Checklist</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">Complete this <strong style="color:var(--blue)">before</strong> entering a trade. State your hypothesis first — then verify. The AI validates your reasoning against your rules and historical edge.</div>
-    </div>
-    <button class="ghost-btn" onclick="openPTCModal()">Run checklist →</button>
-  </div>
-  <!-- Recent PTC logs -->
-  <div class="card">
-    <div class="card-hdr">
-      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Recent Pre-trade Logs</h3>
-      <button class="action-btn" onclick="clearPTCLog()">Clear all</button>
-    </div>
-    <div id="ptcLogList" style="display:flex;flex-direction:column;gap:8px">
-      <div class="empty-state"><div style="font-size:22px">✅</div>No pre-trade logs yet. Run the checklist before your next trade.</div>
-    </div>
-  </div>
-</div>
-
-<!-- PERSONAL RULES TAB -->
-<div class="tab-content" id="tab-rules">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text)">Personal Trading Rules</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">Behavioral guardrails that apply regardless of strategy. The tool checks every imported trade against these rules and flags violations.</div>
-    </div>
-    <button class="ghost-btn" onclick="checkRuleViolations()">Check violations →</button>
-  </div>
-  <!-- Add rule form -->
-  <div class="card">
-    <div class="card-hdr"><h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Add a rule</h3></div>
-    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end">
-      <div class="form-group" style="flex:2">
-        <label class="section-label">Rule</label>
-        <input type="text" class="form-input" id="newRuleText" placeholder="e.g. Never take a 3rd trade after two consecutive losses">
-      </div>
-      <div class="form-group" style="flex:1">
-        <label class="section-label">Category</label>
-        <select class="form-input" id="newRuleCat">
-          <option value="risk">Risk management</option>
-          <option value="behavior">Behavioral</option>
-          <option value="timing">Timing</option>
-          <option value="strategy">Strategy</option>
-        </select>
-      </div>
-      <button class="ghost-btn" onclick="addPersonalRule()" style="flex-shrink:0">Add rule</button>
-    </div>
-  </div>
-  <!-- Rules list -->
-  <div class="card">
-    <div class="card-hdr">
-      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">My rules</h3>
-      <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="ruleViolationSummary"></span>
-    </div>
-    <div id="personalRulesList" style="display:flex;flex-direction:column;gap:6px">
-      <div class="empty-state"><div style="font-size:22px">📋</div>No personal rules yet. Add your first rule above.</div>
-    </div>
-    <div id="ruleViolationOutput" style="display:none;margin-top:12px">
-      <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Rule Violation Analysis</div><div id="ruleViolationText"></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- FOCUS LOG TAB -->
-<div class="tab-content" id="tab-focus">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text)">Focus Log</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">Log setups you saw but chose not to take. Tracks decision discipline and missed opportunities — the gap between your strategy's theoretical edge and what you actually execute.</div>
-    </div>
-    <button class="ghost-btn" onclick="openFocusModal()">+ Log missed setup</button>
-  </div>
-  <!-- Stats row -->
-  <div class="stats-grid" id="focusStatsRow" style="display:none"></div>
-  <!-- Focus entries -->
-  <div class="card">
-    <div class="card-hdr">
-      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Missed setups</h3>
-      <button class="action-btn" onclick="analyseFocusLog()">AI analysis →</button>
-    </div>
-    <div id="focusLogList" style="display:flex;flex-direction:column;gap:7px">
-      <div class="empty-state"><div style="font-size:22px">👁</div>No missed setups logged yet.</div>
-    </div>
-    <div id="focusAnalysisOutput" style="display:none;margin-top:12px">
-      <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">AI Focus Analysis</div><div id="focusAnalysisText"></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- MEMORY TAB -->
-<div class="tab-content" id="tab-memory">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text)">Coaching Memory</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">Every AI insight is automatically saved and injected into future coaching sessions so the coach remembers your journey.</div>
-    </div>
-    <div style="display:flex;gap:7px;align-items:center">
-      <input type="text" id="memorySearch" placeholder="Search insights..." oninput="renderMemoryTab()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:var(--radius);font-size:12px;font-family:var(--sans);width:180px">
-      <select id="memoryFilter" onchange="renderMemoryTab()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:var(--radius);font-size:12px">
-        <option value="">All types</option>
-        <option value="session">Session briefs</option>
-        <option value="plan">Plan reviews</option>
-        <option value="trade">Trade feedback</option>
-        <option value="chat">Chat insights</option>
-        <option value="alert">Alert recommendations</option>
-        <option value="behavior">Behavioral analysis</option>
-      </select>
-      <button onclick="confirmClearMemory()" style="padding:5px 11px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
-    </div>
-  </div>
-  <!-- Memory stats bar -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px" id="memoryStatsBar"></div>
-  <!-- Progress vs memory -->
-  <div id="memoryProgressPanel" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Progress since earliest memory</div>
-    <div id="memoryProgressGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"></div>
-  </div>
-  <!-- Memory log -->
-  <div id="memoryLog" style="display:flex;flex-direction:column;gap:8px"></div>
-</div>
-
-<!-- STRATEGY LAB TAB -->
-<div class="tab-content" id="tab-lab">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text)">Strategy Lab</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">AI analyzes your trade data to generate specific, evidence-based amendments to your strategy rules — entry, stop, exit, position sizing, market condition filters, and indicator recommendations.</div>
-    </div>
-  </div>
-
-  <!-- Strategy selector -->
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Analyze strategy</div>
-    <select id="labStratSelect" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:var(--sans);font-size:13px;flex:1;max-width:280px">
-      <option value="">Select a strategy to analyze...</option>
-    </select>
-    <select id="labPeriodSelect" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:var(--sans);font-size:13px">
-      <option value="all">All time</option>
-      <option value="month">Last 30 days</option>
-      <option value="week">Last 7 days</option>
-    </select>
-    <button id="labAnalyzeBtn" onclick="runStratLab()" style="padding:7px 18px;font-size:12px;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);cursor:pointer;border-radius:var(--radius);white-space:nowrap">Analyze →</button>
-  </div>
-
-  <!-- Stats snapshot for selected strategy -->
-  <div id="labStatsSnap" style="display:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px"></div>
-
-  <!-- Suggestions -->
-  <div id="labSuggestionsWrap" style="display:none">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Amendment suggestions</div>
-    <div id="labSuggestions" style="display:flex;flex-direction:column;gap:10px"></div>
-  </div>
-
-  <!-- Before/After comparison -->
-  <div id="labBeforeAfter" style="display:none">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Before / After accepted amendments</div>
-    <div id="labBeforeAfterGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
-  </div>
-
-  <!-- Amendment history for this strategy -->
-  <div id="labAmendHistory" style="display:none">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Accepted amendments</div>
-    <div id="labAmendList" style="display:flex;flex-direction:column;gap:7px"></div>
-  </div>
-</div>
-
-
-<div class="lightbox hidden" id="lightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt="Screenshot">
-</div>
-
-<!-- ── PRE-TRADE CHECKLIST MODAL ── -->
-<div class="modal-overlay hidden" id="ptcOverlay" onclick="if(event.target===this)closePTCModal()">
-  <div class="modal" style="max-width:620px;border-color:rgba(85,153,255,.3)">
-    <div class="modal-header" style="background:rgba(85,153,255,.06)">
-      <h2 style="font-size:13px;font-family:var(--mono);color:var(--blue)">Pre-trade Checklist</h2>
-      <button class="modal-close" onclick="closePTCModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <!-- Step 1: Hypothesis -->
-      <div>
-        <div class="section-label" style="color:var(--blue)">Step 1 — State your hypothesis before checking anything</div>
-        <textarea class="form-input" id="ptcHypothesis" placeholder="I am about to enter [Long/Short] [Instrument] because… describe exactly what you see: the pattern, level, confirmation signal, and why you want to enter RIGHT NOW." style="min-height:80px;border-color:rgba(85,153,255,.3);font-size:12px"></textarea>
-        <div style="font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono)">Write this before reviewing the checklist. Don't reverse-engineer your rationale.</div>
-      </div>
-      <!-- Step 2: Strategy checklist -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
-          <div class="section-label" style="color:var(--blue);margin:0">Step 2 — Verify setup conditions</div>
-          <select class="form-input-mono" id="ptcStratSelect" onchange="renderPTCChecklist()" style="width:160px;font-size:11px">
-            <option value="">— Select strategy —</option>
-          </select>
-        </div>
-        <div id="ptcChecklist" style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius)"></div>
-      </div>
-      <!-- Step 3: Confidence -->
-      <div>
-        <div class="section-label" style="color:var(--blue)">Step 3 — Pre-trade confidence</div>
-        <div style="display:flex;gap:6px" id="ptcConfRow">
-          <button class="conf-btn conf-lo" onclick="setPTCConf(1)" style="flex:1">1 — Low</button>
-          <button class="conf-btn conf-md" onclick="setPTCConf(2)" style="flex:1">2 — Medium</button>
-          <button class="conf-btn conf-hi" onclick="setPTCConf(3)" style="flex:1">3 — High</button>
-        </div>
-      </div>
-      <!-- Step 4: Risk params -->
-      <div>
-        <div class="section-label" style="color:var(--blue)">Step 4 — Risk parameters</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
-          <div class="form-group"><label class="section-label">Direction</label>
-            <select class="form-input" id="ptcDir"><option value="Long">Long</option><option value="Short">Short</option></select>
-          </div>
-          <div class="form-group"><label class="section-label">Instrument</label>
-            <select class="form-input" id="ptcInstr">
-              <option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="section-label">Stop loss</label>
-            <input type="number" class="form-input" id="ptcStop" placeholder="price" step="0.25" oninput="calcPTCRisk()">
-          </div>
-          <div class="form-group"><label class="section-label">Target</label>
-            <input type="number" class="form-input" id="ptcTarget" placeholder="price" step="0.25" oninput="calcPTCRisk()">
-          </div>
-        </div>
-        <div style="display:flex;gap:14px;margin-top:7px;font-size:12px;font-family:var(--mono);flex-wrap:wrap;align-items:center">
-          <span>Risk: <strong id="ptcRiskDisplay" style="color:var(--amber)">—</strong></span>
-          <span>R:R: <strong id="ptcRRDisplay" style="color:var(--accent)">—</strong></span>
-          <span id="ptcRiskFlag" style="color:var(--red);display:none">⚠ Exceeds 4% limit</span>
-        </div>
-      </div>
-      <!-- AI validate -->
-      <button class="ghost-btn" id="ptcAiBtn" onclick="runPTCAnalysis()" style="width:100%;background:rgba(85,153,255,.08);border-color:rgba(85,153,255,.25);color:var(--blue)">AI: validate this setup against my rules and edge →</button>
-      <div id="ptcAiOutput" style="display:none">
-        <div class="ai-response" style="border-left-color:var(--blue)"><div style="font-family:var(--mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Setup Validation</div><div id="ptcAiText"></div></div>
-      </div>
-      <!-- Action buttons -->
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="action-btn" onclick="closePTCModal()">Cancel — don't trade</button>
-        <button class="submit-btn" onclick="savePTCAndClose()">Log + take the trade</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── FOCUS LOG MODAL ── -->
-<div class="modal-overlay hidden" id="focusOverlay" onclick="if(event.target===this)closeFocusModal()">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header"><h2 style="font-size:13px;font-family:var(--mono)">Log Missed Setup</h2><button class="modal-close" onclick="closeFocusModal()">✕</button></div>
-    <div class="modal-body">
-      <div class="two-col">
-        <div class="form-group"><label class="section-label">Instrument</label>
-          <select class="form-input" id="focusInstr"><option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option></select>
-        </div>
-        <div class="form-group"><label class="section-label">Direction</label>
-          <select class="form-input" id="focusDir"><option value="Long">Long</option><option value="Short">Short</option></select>
-        </div>
-      </div>
-      <div class="form-group"><label class="section-label">Setup description — what did you see?</label>
-        <textarea class="form-input" id="focusDesc" placeholder="Describe the setup exactly as you saw it: pattern, levels, conditions..." style="min-height:65px"></textarea>
-      </div>
-      <div class="form-group"><label class="section-label">Why did you pass?</label>
-        <select class="form-input" id="focusReason">
-          <option value="discipline">Discipline — didn't fully meet my rules</option>
-          <option value="fear">Fear / hesitation — valid setup but I didn't pull the trigger</option>
-          <option value="uncertain">Uncertain — wasn't sure enough</option>
-          <option value="limit">At trade or loss limit for the day</option>
-          <option value="news">Avoiding a news event</option>
-          <option value="sizing">Couldn't size correctly for the risk</option>
-          <option value="missed">Moved too fast — missed the entry</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="form-group"><label class="section-label">What happened after? (fill in later)</label>
-        <input type="text" class="form-input" id="focusOutcome" placeholder="e.g. Would have been +3R — trend continued 40 ticks before reversing">
-      </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="action-btn" onclick="closeFocusModal()">Cancel</button>
-        <button class="ghost-btn" onclick="saveFocusEntry()">Log this setup</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-  <!-- ══ MEMORY SECTION ══ -->
-  <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
-        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
-        <button onclick="confirmClearMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
-      </div>
-      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
-    </div>
-  </div>
-
-  <!-- ══ ALERTS SECTION ══ -->
-  <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Alert Monitoring</h3>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div id="alertStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-          <span id="alertStatusLabel" style="font-family:var(--mono);font-size:11px;color:var(--text3)">Off</span>
-          <button id="alertToggleSettingsBtn" onclick="toggleAlerts()" style="padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);transition:all .2s">Start monitoring</button>
-        </div>
-      </div>
-      <div id="alertsSettingsMount"></div>
-      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alert log</div>
-        <div style="display:flex;gap:7px;margin-bottom:7px">
-          <button onclick="clearAlertLog()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Clear log</button>
-        </div>
-        <div id="alertLogSettings" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
-          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet — start monitoring to watch for events.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ RISK CALCULATOR SECTION ══ -->
-  <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator &amp; Instruments</div>
-    <div class="card">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Quick Risk Calculator</h3>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
-        <div class="form-group"><label class="section-label">Instrument</label>
-          <select class="form-input" id="sCalcInstr" onchange="runSettingsCalc()"></select>
-        </div>
-        <div class="form-group"><label class="section-label">Account</label>
-          <select class="form-input" id="sCalcAcct" onchange="runSettingsCalc()"></select>
-        </div>
-        <div class="form-group"><label class="section-label">Entry price</label>
-          <input type="number" class="form-input" id="sCalcEntry" placeholder="e.g. 21500" step="0.25" oninput="runSettingsCalc()">
-        </div>
-        <div class="form-group"><label class="section-label">Stop (ticks)</label>
-          <input type="number" class="form-input" id="sCalcStopTicks" placeholder="e.g. 10" min="1" oninput="runSettingsCalc()">
-        </div>
-        <div class="form-group"><label class="section-label">Contracts</label>
-          <input type="number" class="form-input" id="sCalcContracts" placeholder="1" min="1" value="1" oninput="runSettingsCalc()">
-        </div>
-      </div>
-      <div id="sCalcResult" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
-    </div>
-    <div class="card" style="margin-top:10px">
-      <div class="card-hdr">
-        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Instrument Reference</h3>
-        <button onclick="openAddInstrModal()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">+ Add</button>
-      </div>
-      <div id="instrTable" style="overflow:hidden">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="background:var(--bg3)">
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Symbol</th>
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Name</th>
-              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Tick size</th>
-              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">$/tick</th>
-              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Exchange</th>
-              <th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>
-            </tr>
-          </thead>
-          <tbody id="instrTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add/Edit Instrument Modal -->
-  <div id="instrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.7)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)" id="instrModalTitle">Add Instrument</div>
-        <button onclick="closeInstrModal()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="form-group"><label class="section-label">Symbol</label><input type="text" class="form-input" id="instrSymbol" placeholder="MNQ" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
-          <div class="form-group"><label class="section-label">Exchange</label><input type="text" class="form-input" id="instrExchange" placeholder="CME"></div>
-        </div>
-        <div class="form-group"><label class="section-label">Full name</label><input type="text" class="form-input" id="instrName" placeholder="Micro Nasdaq"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="form-group"><label class="section-label">Tick size</label><input type="number" class="form-input" id="instrTickSize" placeholder="0.25" step="0.001" min="0.001"></div>
-          <div class="form-group"><label class="section-label">$/tick value</label><input type="number" class="form-input" id="instrTickValue" placeholder="0.50" step="0.01" min="0.01"></div>
-        </div>
-        <div id="instrModalError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono)"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-          <button onclick="closeInstrModal()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
-          <button onclick="saveInstrument()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div><!-- /content -->
 </div><!-- /main -->
 
@@ -10304,6 +9747,562 @@ window.clearPostTrade = function() {
     </div>
   </div>
 </div>
+<!-- TRADE MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <button onclick="navigateModal(-1)" id="modalPrev" style="background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:3px 10px;font-size:13px;transition:all .15s" title="Previous trade">←</button>
+      <h2 id="modalTitle" style="flex:1;text-align:center">Trade Review</h2>
+      <button onclick="navigateModal(1)" id="modalNext" style="background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:3px 10px;font-size:13px;transition:all .15s" title="Next trade">→</button>
+      <button class="modal-close" onclick="closeModal()" style="margin-left:8px">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-grid" id="modalDataGrid"></div>
+      <div class="risk-flag hidden" id="modalRiskFlag">⚠ <strong>Risk violation:</strong> <span id="riskFlagText"></span></div>
+      <!-- STOP / TARGET / SLIPPAGE -->
+      <div>
+        <div class="section-label">Trade management — stop, target & slippage</div>
+        <div class="slt-grid">
+          <div class="slt-field">
+            <div class="slt-lbl">Stop loss price</div>
+            <input class="slt-inp" type="number" id="modalStopLoss" placeholder="e.g. 21420.50" step="0.25" oninput="recalcTradeMetrics()">
+            <div class="slt-derived" id="modalSLTicks">— ticks from entry</div>
+          </div>
+          <div class="slt-field">
+            <div class="slt-lbl">Target price</div>
+            <input class="slt-inp" type="number" id="modalTarget" placeholder="e.g. 21520.00" step="0.25" oninput="recalcTradeMetrics()">
+            <div class="slt-derived" id="modalTPTicks">— ticks to target</div>
+          </div>
+          <div class="slt-field" style="border-color:rgba(0,229,160,.3)">
+            <div class="slt-lbl">Planned R:R</div>
+            <div class="slt-inp" id="modalPlannedRR" style="color:var(--accent)">—</div>
+            <div class="slt-derived" id="modalRealizedR">Realized: —</div>
+          </div>
+          <div class="slt-field">
+            <div class="slt-lbl">Slippage (ticks)</div>
+            <input class="slt-inp" type="number" id="modalSlippage" placeholder="0" step="1" oninput="saveTradeData()">
+            <div class="slt-derived">+ bad fill &nbsp;·&nbsp; − good fill</div>
+          </div>
+        </div>
+      </div>
+      <!-- MAE / MFE / INITIAL RISK / LEFT ON TABLE -->
+      <div>
+        <div class="section-label">Excursion tracking (MAE / MFE) + initial risk</div>
+        <div class="slt-grid">
+          <div class="slt-field">
+            <div class="slt-lbl">MAE ticks (worst point)</div>
+            <input class="slt-inp" type="number" id="modalMAE" placeholder="e.g. 12" min="0" step="1" oninput="recalcTradeMetrics()">
+            <div class="slt-derived">Max adverse before resolve</div>
+          </div>
+          <div class="slt-field">
+            <div class="slt-lbl">MFE ticks (best point)</div>
+            <input class="slt-inp" type="number" id="modalMFE" placeholder="e.g. 28" min="0" step="1" oninput="recalcTradeMetrics()">
+            <div class="slt-derived">Max favorable before exit</div>
+          </div>
+          <div class="slt-field">
+            <div class="slt-lbl">Initial risk ($)</div>
+            <input class="slt-inp" type="number" id="modalInitialRisk" placeholder="e.g. 25.00" step="0.01" oninput="updateInitialRisk(this.value)">
+            <div class="slt-derived" id="rMultipleDisplay" style="color:var(--accent)">→ R-multiple</div>
+          </div>
+          <div class="slt-field" style="border-color:rgba(255,179,71,.3)">
+            <div class="slt-lbl">Left on table (ticks)</div>
+            <div class="slt-inp" id="modalLeftOnTable" style="color:var(--amber)">—</div>
+            <div class="slt-derived">MFE minus actual move</div>
+          </div>
+        </div>
+      </div>
+      <!-- CONFIDENCE + HYPOTHESIS -->
+      <div class="two-col">
+        <div>
+          <div class="section-label">Pre-trade confidence</div>
+          <div class="conf-row" id="modalConfRow">
+            <button class="conf-btn conf-lo" onclick="setConf(1)">1 — Low</button>
+            <button class="conf-btn conf-md" onclick="setConf(2)">2 — Med</button>
+            <button class="conf-btn conf-hi" onclick="setConf(3)">3 — High</button>
+          </div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px">Your conviction level before entering</div>
+        </div>
+        <div>
+          <div class="section-label">Trade hypothesis (pre-entry thesis)</div>
+          <textarea class="form-input" id="modalHypothesis" placeholder="I entered because… (what you saw before the trade)" oninput="saveTradeData()" style="min-height:42px;font-size:11px"></textarea>
+        </div>
+      </div>
+      <!-- DUAL QUALITY SCORES -->
+      <div>
+        <div class="section-label">Quality scores — rate setup and execution independently</div>
+        <div class="dual-stars">
+          <div class="dual-star-item">
+            <div class="ds-lbl">Setup quality ★ — was this a valid, well-identified setup?</div>
+            <div class="star-rating stars-row" id="setupStarRow"></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px" id="setupStarHint">Not rated</div>
+          </div>
+          <div class="dual-star-item">
+            <div class="ds-lbl">Execution quality ★ — did you execute your plan well?</div>
+            <div class="star-rating stars-row" id="execStarRow"></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px" id="execStarHint">Not rated</div>
+          </div>
+        </div>
+      </div>
+      <!-- Market condition -->
+      <div>
+        <div class="section-label">Market condition during trade</div>
+        <select class="form-input" id="modalCondition" onchange="saveTradeData();document.getElementById('modalConditionHint').style.display='none'" style="max-width:300px">
+          <option value="">— Select condition —</option>
+          <option value="trending-bull">Trending — Bullish</option>
+          <option value="trending-bear">Trending — Bearish</option>
+          <option value="ranging">Ranging / Sideways</option>
+          <option value="wedge">Wedge / Triangle compression</option>
+          <option value="news-driven">News-driven / High volatility</option>
+          <option value="low-vol">Low volatility / Choppy</option>
+        </select>
+        <div id="modalConditionHint" style="display:none;font-size:11px;color:var(--blue);font-family:var(--mono);margin-top:4px">Defaulted from daily plan — change if this trade differed</div>
+      </div>
+      <!-- Account + Strategy -->
+      <div class="two-col">
+        <div>
+          <div class="section-label">Account</div>
+          <select class="form-input" id="modalAcct" onchange="saveTradeData()"></select>
+        </div>
+        <div>
+          <div class="section-label">Strategy</div>
+          <select class="form-input" id="modalStrat" onchange="onModalStratChange()"></select>
+        </div>
+      </div>
+      <!-- Checklist -->
+      <div>
+        <div class="section-label">Strategy checklist</div>
+        <div class="checklist" id="checklistItems"></div>
+      </div>
+      <!-- Screenshot -->
+      <div>
+        <div class="section-label">Chart screenshot</div>
+        <div id="screenshotArea" style="border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px" onclick="document.getElementById('screenshotInput').click()">
+          <div style="font-size:16px;color:var(--text3)">📷</div>
+          <div style="font-size:12px;color:var(--text3)">Click to attach chart screenshot</div>
+          <input type="file" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)" style="display:none">
+        </div>
+        <img id="screenshotPreview" class="hidden" onclick="document.getElementById('screenshotInput').click()" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);max-height:180px;object-fit:cover;cursor:pointer;margin-top:6px" title="Click to replace">
+      </div>
+      <!-- Notes -->
+      <div>
+        <div class="section-label">Notes</div>
+        <textarea class="form-input" id="modalNotes" placeholder="Entry rationale, what you saw, what you'd do differently..." oninput="saveTradeData()" style="min-height:80px"></textarea>
+      </div>
+      <!-- AI feedback -->
+      <button class="ai-btn" id="aiFeedbackBtn" onclick="getAIFeedback()">Get AI feedback →</button>
+      <div id="aiFeedbackOutput" style="display:none">
+        <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">AI Analysis</div><div id="aiFeedbackText"></div></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end"><button class="submit-btn" onclick="closeModal()">Save + Close</button></div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- LIGHTBOX -->
+<!-- PRE-TRADE CHECKLIST TAB -->
+<div class="tab-content" id="tab-pretrade">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">Pre-trade Checklist</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">Complete this <strong style="color:var(--blue)">before</strong> entering a trade. State your hypothesis first — then verify. The AI validates your reasoning against your rules and historical edge.</div>
+    </div>
+    <button class="ghost-btn" onclick="openPTCModal()">Run checklist →</button>
+  </div>
+  <!-- Recent PTC logs -->
+  <div class="card">
+    <div class="card-hdr">
+      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Recent Pre-trade Logs</h3>
+      <button class="action-btn" onclick="clearPTCLog()">Clear all</button>
+    </div>
+    <div id="ptcLogList" style="display:flex;flex-direction:column;gap:8px">
+      <div class="empty-state"><div style="font-size:22px">✅</div>No pre-trade logs yet. Run the checklist before your next trade.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PERSONAL RULES TAB -->
+<div class="tab-content" id="tab-rules">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">Personal Trading Rules</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">Behavioral guardrails that apply regardless of strategy. The tool checks every imported trade against these rules and flags violations.</div>
+    </div>
+    <button class="ghost-btn" onclick="checkRuleViolations()">Check violations →</button>
+  </div>
+  <!-- Add rule form -->
+  <div class="card">
+    <div class="card-hdr"><h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Add a rule</h3></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end">
+      <div class="form-group" style="flex:2">
+        <label class="section-label">Rule</label>
+        <input type="text" class="form-input" id="newRuleText" placeholder="e.g. Never take a 3rd trade after two consecutive losses">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="section-label">Category</label>
+        <select class="form-input" id="newRuleCat">
+          <option value="risk">Risk management</option>
+          <option value="behavior">Behavioral</option>
+          <option value="timing">Timing</option>
+          <option value="strategy">Strategy</option>
+        </select>
+      </div>
+      <button class="ghost-btn" onclick="addPersonalRule()" style="flex-shrink:0">Add rule</button>
+    </div>
+  </div>
+  <!-- Rules list -->
+  <div class="card">
+    <div class="card-hdr">
+      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">My rules</h3>
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="ruleViolationSummary"></span>
+    </div>
+    <div id="personalRulesList" style="display:flex;flex-direction:column;gap:6px">
+      <div class="empty-state"><div style="font-size:22px">📋</div>No personal rules yet. Add your first rule above.</div>
+    </div>
+    <div id="ruleViolationOutput" style="display:none;margin-top:12px">
+      <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Rule Violation Analysis</div><div id="ruleViolationText"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOCUS LOG TAB -->
+<div class="tab-content" id="tab-focus">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">Focus Log</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">Log setups you saw but chose not to take. Tracks decision discipline and missed opportunities — the gap between your strategy's theoretical edge and what you actually execute.</div>
+    </div>
+    <button class="ghost-btn" onclick="openFocusModal()">+ Log missed setup</button>
+  </div>
+  <!-- Stats row -->
+  <div class="stats-grid" id="focusStatsRow" style="display:none"></div>
+  <!-- Focus entries -->
+  <div class="card">
+    <div class="card-hdr">
+      <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Missed setups</h3>
+      <button class="action-btn" onclick="analyseFocusLog()">AI analysis →</button>
+    </div>
+    <div id="focusLogList" style="display:flex;flex-direction:column;gap:7px">
+      <div class="empty-state"><div style="font-size:22px">👁</div>No missed setups logged yet.</div>
+    </div>
+    <div id="focusAnalysisOutput" style="display:none;margin-top:12px">
+      <div class="ai-response"><div style="font-family:var(--mono);font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">AI Focus Analysis</div><div id="focusAnalysisText"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMORY TAB -->
+<div class="tab-content" id="tab-memory">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">Coaching Memory</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">Every AI insight is automatically saved and injected into future coaching sessions so the coach remembers your journey.</div>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <input type="text" id="memorySearch" placeholder="Search insights..." oninput="renderMemoryTab()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:var(--radius);font-size:12px;font-family:var(--sans);width:180px">
+      <select id="memoryFilter" onchange="renderMemoryTab()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:var(--radius);font-size:12px">
+        <option value="">All types</option>
+        <option value="session">Session briefs</option>
+        <option value="plan">Plan reviews</option>
+        <option value="trade">Trade feedback</option>
+        <option value="chat">Chat insights</option>
+        <option value="alert">Alert recommendations</option>
+        <option value="behavior">Behavioral analysis</option>
+      </select>
+      <button onclick="confirmClearMemory()" style="padding:5px 11px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+    </div>
+  </div>
+  <!-- Memory stats bar -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px" id="memoryStatsBar"></div>
+  <!-- Progress vs memory -->
+  <div id="memoryProgressPanel" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px">
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Progress since earliest memory</div>
+    <div id="memoryProgressGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"></div>
+  </div>
+  <!-- Memory log -->
+  <div id="memoryLog" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+
+<!-- STRATEGY LAB TAB -->
+<div class="tab-content" id="tab-lab">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">Strategy Lab</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">AI analyzes your trade data to generate specific, evidence-based amendments to your strategy rules — entry, stop, exit, position sizing, market condition filters, and indicator recommendations.</div>
+    </div>
+  </div>
+
+  <!-- Strategy selector -->
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Analyze strategy</div>
+    <select id="labStratSelect" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:var(--sans);font-size:13px;flex:1;max-width:280px">
+      <option value="">Select a strategy to analyze...</option>
+    </select>
+    <select id="labPeriodSelect" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);font-family:var(--sans);font-size:13px">
+      <option value="all">All time</option>
+      <option value="month">Last 30 days</option>
+      <option value="week">Last 7 days</option>
+    </select>
+    <button id="labAnalyzeBtn" onclick="runStratLab()" style="padding:7px 18px;font-size:12px;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);cursor:pointer;border-radius:var(--radius);white-space:nowrap">Analyze →</button>
+  </div>
+
+  <!-- Stats snapshot for selected strategy -->
+  <div id="labStatsSnap" style="display:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px"></div>
+
+  <!-- Suggestions -->
+  <div id="labSuggestionsWrap" style="display:none">
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Amendment suggestions</div>
+    <div id="labSuggestions" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
+  <!-- Before/After comparison -->
+  <div id="labBeforeAfter" style="display:none">
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Before / After accepted amendments</div>
+    <div id="labBeforeAfterGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+  </div>
+
+  <!-- Amendment history for this strategy -->
+  <div id="labAmendHistory" style="display:none">
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Accepted amendments</div>
+    <div id="labAmendList" style="display:flex;flex-direction:column;gap:7px"></div>
+  </div>
+</div>
+
+
+<div class="lightbox hidden" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="Screenshot">
+</div>
+
+<!-- ── PRE-TRADE CHECKLIST MODAL ── -->
+<div class="modal-overlay hidden" id="ptcOverlay" onclick="if(event.target===this)closePTCModal()">
+  <div class="modal" style="max-width:620px;border-color:rgba(85,153,255,.3)">
+    <div class="modal-header" style="background:rgba(85,153,255,.06)">
+      <h2 style="font-size:13px;font-family:var(--mono);color:var(--blue)">Pre-trade Checklist</h2>
+      <button class="modal-close" onclick="closePTCModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step 1: Hypothesis -->
+      <div>
+        <div class="section-label" style="color:var(--blue)">Step 1 — State your hypothesis before checking anything</div>
+        <textarea class="form-input" id="ptcHypothesis" placeholder="I am about to enter [Long/Short] [Instrument] because… describe exactly what you see: the pattern, level, confirmation signal, and why you want to enter RIGHT NOW." style="min-height:80px;border-color:rgba(85,153,255,.3);font-size:12px"></textarea>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono)">Write this before reviewing the checklist. Don't reverse-engineer your rationale.</div>
+      </div>
+      <!-- Step 2: Strategy checklist -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+          <div class="section-label" style="color:var(--blue);margin:0">Step 2 — Verify setup conditions</div>
+          <select class="form-input-mono" id="ptcStratSelect" onchange="renderPTCChecklist()" style="width:160px;font-size:11px">
+            <option value="">— Select strategy —</option>
+          </select>
+        </div>
+        <div id="ptcChecklist" style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius)"></div>
+      </div>
+      <!-- Step 3: Confidence -->
+      <div>
+        <div class="section-label" style="color:var(--blue)">Step 3 — Pre-trade confidence</div>
+        <div style="display:flex;gap:6px" id="ptcConfRow">
+          <button class="conf-btn conf-lo" onclick="setPTCConf(1)" style="flex:1">1 — Low</button>
+          <button class="conf-btn conf-md" onclick="setPTCConf(2)" style="flex:1">2 — Medium</button>
+          <button class="conf-btn conf-hi" onclick="setPTCConf(3)" style="flex:1">3 — High</button>
+        </div>
+      </div>
+      <!-- Step 4: Risk params -->
+      <div>
+        <div class="section-label" style="color:var(--blue)">Step 4 — Risk parameters</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
+          <div class="form-group"><label class="section-label">Direction</label>
+            <select class="form-input" id="ptcDir"><option value="Long">Long</option><option value="Short">Short</option></select>
+          </div>
+          <div class="form-group"><label class="section-label">Instrument</label>
+            <select class="form-input" id="ptcInstr">
+              <option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="section-label">Stop loss</label>
+            <input type="number" class="form-input" id="ptcStop" placeholder="price" step="0.25" oninput="calcPTCRisk()">
+          </div>
+          <div class="form-group"><label class="section-label">Target</label>
+            <input type="number" class="form-input" id="ptcTarget" placeholder="price" step="0.25" oninput="calcPTCRisk()">
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:7px;font-size:12px;font-family:var(--mono);flex-wrap:wrap;align-items:center">
+          <span>Risk: <strong id="ptcRiskDisplay" style="color:var(--amber)">—</strong></span>
+          <span>R:R: <strong id="ptcRRDisplay" style="color:var(--accent)">—</strong></span>
+          <span id="ptcRiskFlag" style="color:var(--red);display:none">⚠ Exceeds 4% limit</span>
+        </div>
+      </div>
+      <!-- AI validate -->
+      <button class="ghost-btn" id="ptcAiBtn" onclick="runPTCAnalysis()" style="width:100%;background:rgba(85,153,255,.08);border-color:rgba(85,153,255,.25);color:var(--blue)">AI: validate this setup against my rules and edge →</button>
+      <div id="ptcAiOutput" style="display:none">
+        <div class="ai-response" style="border-left-color:var(--blue)"><div style="font-family:var(--mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Setup Validation</div><div id="ptcAiText"></div></div>
+      </div>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="action-btn" onclick="closePTCModal()">Cancel — don't trade</button>
+        <button class="submit-btn" onclick="savePTCAndClose()">Log + take the trade</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOCUS LOG MODAL ── -->
+<div class="modal-overlay hidden" id="focusOverlay" onclick="if(event.target===this)closeFocusModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h2 style="font-size:13px;font-family:var(--mono)">Log Missed Setup</h2><button class="modal-close" onclick="closeFocusModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="two-col">
+        <div class="form-group"><label class="section-label">Instrument</label>
+          <select class="form-input" id="focusInstr"><option>MNQ</option><option>MES</option><option>MCL</option><option>MGC</option><option>MBT</option><option>NQ</option><option>ES</option></select>
+        </div>
+        <div class="form-group"><label class="section-label">Direction</label>
+          <select class="form-input" id="focusDir"><option value="Long">Long</option><option value="Short">Short</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="section-label">Setup description — what did you see?</label>
+        <textarea class="form-input" id="focusDesc" placeholder="Describe the setup exactly as you saw it: pattern, levels, conditions..." style="min-height:65px"></textarea>
+      </div>
+      <div class="form-group"><label class="section-label">Why did you pass?</label>
+        <select class="form-input" id="focusReason">
+          <option value="discipline">Discipline — didn't fully meet my rules</option>
+          <option value="fear">Fear / hesitation — valid setup but I didn't pull the trigger</option>
+          <option value="uncertain">Uncertain — wasn't sure enough</option>
+          <option value="limit">At trade or loss limit for the day</option>
+          <option value="news">Avoiding a news event</option>
+          <option value="sizing">Couldn't size correctly for the risk</option>
+          <option value="missed">Moved too fast — missed the entry</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="section-label">What happened after? (fill in later)</label>
+        <input type="text" class="form-input" id="focusOutcome" placeholder="e.g. Would have been +3R — trend continued 40 ticks before reversing">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="action-btn" onclick="closeFocusModal()">Cancel</button>
+        <button class="ghost-btn" onclick="saveFocusEntry()">Log this setup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- ══ MEMORY SECTION ══ -->
+  <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Memory</h3>
+        <span id="memCount" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Coaching insights saved automatically and injected into future AI calls.</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <input type="text" id="memSearch" class="form-input" placeholder="Search memories..." style="flex:1;font-size:12px" oninput="renderMemoryTab()">
+        <button onclick="confirmClearMemory()" style="padding:5px 10px;font-size:11px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:var(--radius)">Clear all</button>
+      </div>
+      <div id="memoryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- ══ ALERTS SECTION ══ -->
+  <div id="alertsSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🔔 Alerts &amp; Monitoring</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Alert Monitoring</h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="alertStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="alertStatusLabel" style="font-family:var(--mono);font-size:11px;color:var(--text3)">Off</span>
+          <button id="alertToggleSettingsBtn" onclick="toggleAlerts()" style="padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);transition:all .2s">Start monitoring</button>
+        </div>
+      </div>
+      <div id="alertsSettingsMount"></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alert log</div>
+        <div style="display:flex;gap:7px;margin-bottom:7px">
+          <button onclick="clearAlertLog()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">Clear log</button>
+        </div>
+        <div id="alertLogSettings" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">No alerts yet — start monitoring to watch for events.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RISK CALCULATOR SECTION ══ -->
+  <div id="riskCalcSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧮 Risk Calculator &amp; Instruments</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Quick Risk Calculator</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
+        <div class="form-group"><label class="section-label">Instrument</label>
+          <select class="form-input" id="sCalcInstr" onchange="runSettingsCalc()"></select>
+        </div>
+        <div class="form-group"><label class="section-label">Account</label>
+          <select class="form-input" id="sCalcAcct" onchange="runSettingsCalc()"></select>
+        </div>
+        <div class="form-group"><label class="section-label">Entry price</label>
+          <input type="number" class="form-input" id="sCalcEntry" placeholder="e.g. 21500" step="0.25" oninput="runSettingsCalc()">
+        </div>
+        <div class="form-group"><label class="section-label">Stop (ticks)</label>
+          <input type="number" class="form-input" id="sCalcStopTicks" placeholder="e.g. 10" min="1" oninput="runSettingsCalc()">
+        </div>
+        <div class="form-group"><label class="section-label">Contracts</label>
+          <input type="number" class="form-input" id="sCalcContracts" placeholder="1" min="1" value="1" oninput="runSettingsCalc()">
+        </div>
+      </div>
+      <div id="sCalcResult" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Instrument Reference</h3>
+        <button onclick="openAddInstrModal()" style="padding:3px 9px;font-size:10px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">+ Add</button>
+      </div>
+      <div id="instrTable" style="overflow:hidden">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--bg3)">
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Symbol</th>
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Name</th>
+              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Tick size</th>
+              <th style="text-align:right;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">$/tick</th>
+              <th style="text-align:left;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)">Exchange</th>
+              <th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>
+            </tr>
+          </thead>
+          <tbody id="instrTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Instrument Modal -->
+  <div id="instrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center">
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.7)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)" id="instrModalTitle">Add Instrument</div>
+        <button onclick="closeInstrModal()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label class="section-label">Symbol</label><input type="text" class="form-input" id="instrSymbol" placeholder="MNQ" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="form-group"><label class="section-label">Exchange</label><input type="text" class="form-input" id="instrExchange" placeholder="CME"></div>
+        </div>
+        <div class="form-group"><label class="section-label">Full name</label><input type="text" class="form-input" id="instrName" placeholder="Micro Nasdaq"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label class="section-label">Tick size</label><input type="number" class="form-input" id="instrTickSize" placeholder="0.25" step="0.001" min="0.001"></div>
+          <div class="form-group"><label class="section-label">$/tick value</label><input type="number" class="form-input" id="instrTickValue" placeholder="0.50" step="0.01" min="0.01"></div>
+        </div>
+        <div id="instrModalError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono)"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button onclick="closeInstrModal()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
+          <button onclick="saveInstrument()" style="padding:7px 14px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html
   <!-- ══ MEMORY SECTION ══ -->
