@@ -650,6 +650,16 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <input type="file" id="tradeSSInput" accept="image/*" multiple style="display:none" onchange="handleTradeSSFiles(event)">
 
         <!-- AI validate -->
+
+        <!-- Step 6: Timestamped thoughts -->
+        <div class="section-label" style="color:var(--blue)">Step 6 — Real-time thoughts</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:7px">Capture your thinking as it evolves. Each entry is timestamped automatically.</div>
+        <div id="preThoughtsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:6px;align-items:flex-start">
+          <textarea id="preThoughtInput" class="form-input" placeholder="What are you seeing right now? Why are you considering this trade?" style="flex:1;min-height:54px;max-height:100px;resize:none;font-size:12px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addPreThought()}"></textarea>
+          <button onclick="addPreThought()" style="padding:6px 12px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">OK ✓</button>
+        </div>
+
         <button class="ghost-btn" id="tradeAiBtn" onclick="runTradeAIValidation()" style="width:100%;margin-top:10px;background:rgba(85,153,255,.08);border-color:rgba(85,153,255,.25);color:var(--blue)">AI: validate this setup →</button>
         <div id="tradeAiOutput" style="display:none;margin-top:8px">
           <div class="ai-response" style="border-left-color:var(--blue)"><div style="font-family:var(--mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Setup Validation</div><div id="tradeAiText" style="font-size:12px;line-height:1.6"></div></div>
@@ -682,6 +692,18 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <div class="form-group" style="margin-bottom:8px">
           <label class="section-label">What happened? (quick notes while fresh)</label>
           <textarea class="form-input" id="postTradeNotes" placeholder="What went right? What went wrong? Did price do what you expected? How was your execution?..." style="min-height:90px;font-size:12px"></textarea>
+
+        <!-- Timestamped thoughts for post-trade -->
+        <div class="form-group" style="margin-top:8px">
+          <label class="section-label">Real-time thoughts (timestamped)</label>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:7px">Capture your thinking as the trade evolves. Each entry is timestamped.</div>
+          <div id="postThoughtsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:6px;align-items:flex-start">
+            <textarea id="postThoughtInput" class="form-input" placeholder="What are you observing right now? Price action, your exit reasoning, anything notable..." style="flex:1;min-height:54px;max-height:100px;resize:none;font-size:12px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addPostThought()}"></textarea>
+            <button onclick="addPostThought()" style="padding:6px 12px;font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius);flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">OK ✓</button>
+          </div>
+        </div>
+
         </div>
         <div class="form-group" style="margin-bottom:8px">
           <label class="section-label">Outcome screenshots (result chart, P&amp;L, up to 3)</label>
@@ -1045,14 +1067,14 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <div id="marketInsightsMeta" style="display:none;margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--text3)"></div>
       </div>
       <!-- Market News -->
-      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
         <div class="card-hdr" style="flex-shrink:0">
           <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">Market News</h3>
           <div style="display:flex;gap:5px">
             <button onclick="loadNews();setTimeout(runMarketInsights,3000)" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)" title="Refresh news and re-analyse">↻ + AI</button>
           </div>
         </div>
-        <div id="newsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+        <div id="newsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;min-height:0">
           <div class="empty-state">Loading<span class="loading-dots"></span></div>
         </div>
       </div>
@@ -1414,7 +1436,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
         <button onclick="loadNews()" style="padding:3px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius)">↻</button>
       </div>
       <div style="font-size:10px;font-family:var(--mono);color:var(--text3)">Reuters · MarketWatch · CNBC · Benzinga</div>
-      <div id="newsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+      <div id="marketNewsFeed" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
         <div class="empty-state">Loading<span class="loading-dots"></span></div>
       </div>
     </div>
@@ -2584,8 +2606,23 @@ function parseCSV(text){
     entryPrice:fc(['entry price','entry','avg entry','fill price']),
     exitPrice:fc(['exit price','exit','avg exit']),
     pnl:fc(['profit','profit/loss','p&l','pnl','net profit','realized pnl','gross profit']),
-    commission:fc(['commission','comm','fees'])
+    commission:fc(['commission','comm','fees']),
+    mae:fc(['mae']),
+    mfe:fc(['mfe']),
+    exitName:fc(['exit name','exit type','exit reason'])
   };
+  // Strip futures contract month suffix: 'NQ JUN26' -> 'NQ'
+  function normalizeInstrument(raw){
+    if(!raw)return '';
+    return raw.replace(/\s+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d{2,4}$/i,'').trim()||raw;
+  }
+  // Convert MAE/MFE dollar value to ticks using instrument tick value
+  function dollarToTicks(dollarStr,sym){
+    const d=parseFloat((dollarStr||'').replace(/[$,]/g,''));
+    if(!d||isNaN(d))return null;
+    const tv=INSTRUMENTS[sym]?.tickValue;
+    return tv?Math.round(d/tv):null;
+  }
   const acctId=document.getElementById('importAccount').value||accounts[0]?.id||'a1';
   const newTrades=[];
   for(let i=1;i<lines.length;i++){
@@ -2596,13 +2633,19 @@ function parseCSV(text){
     const exitP=parseFloat(g('exitPrice').replace(/[$,]/g,''))||0;
     const qty=parseInt(g('qty'))||1;
     const entryT=g('entryTime'),exitT=g('exitTime');
+    const rawInstr=g('instrument')||document.getElementById('instrument').value;
+    const instrSym=normalizeInstrument(rawInstr);
     let durationMins=0;
     if(entryT&&exitT){const de=new Date(entryT),dx=new Date(exitT);if(!isNaN(de)&&!isNaN(dx))durationMins=(dx-de)/60000;}
+    const maeRaw=g('mae');const mfeRaw=g('mfe');
+    const maeTicks=maeRaw.includes('$')?dollarToTicks(maeRaw,instrSym):(parseFloat(maeRaw)||null);
+    const mfeTicks=mfeRaw.includes('$')?dollarToTicks(mfeRaw,instrSym):(parseFloat(mfeRaw)||null);
     newTrades.push({id:'T'+Date.now()+'_'+i,entryTime:entryT,exitTime:exitT,
-      instrument:g('instrument')||document.getElementById('instrument').value,
+      instrument:instrSym,
       direction:normalizeDir(g('direction')),qty,entryPrice:entryP,exitPrice:exitP,
       pnl:pnlRaw,commission:parseFloat(g('commission').replace(/[$,]/g,''))||0,
-      durationMins,importAccount:acctId,rMultiple:null});
+      durationMins,importAccount:acctId,rMultiple:null,
+      _importedMAE:maeTicks,_importedMFE:mfeTicks,_exitName:g('exitName')});
   }
   if(newTrades.length===0){alert('No valid trades found. Export the Executions/Trades tab.');return;}
   const existingKeys=new Set(trades.map(t=>t.entryTime+'_'+t.direction+'_'+t.pnl));
@@ -2613,6 +2656,9 @@ function parseCSV(text){
       trades.push(t);
       if(!tradeData[t.id])tradeData[t.id]={};
       tradeData[t.id].account=acctId;
+      // Write imported MAE/MFE to tradeData if present
+      if(t._importedMAE!=null)tradeData[t.id].mae=t._importedMAE;
+      if(t._importedMFE!=null)tradeData[t.id].mfe=t._importedMFE;
       added++;
     }
   }
@@ -4163,6 +4209,7 @@ function renderAccountManager(){
         <div style="flex:1;font-size:12px;font-weight:500">${a.name}</div>
         <span style="font-size:10px;font-family:var(--mono);background:${tc}22;color:${tc};padding:1px 6px;border-radius:3px">${ACCT_TYPE_LABELS[a.type]}</span>
         ${a.propLimits?.firmName?`<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${a.propLimits.firmName}</span>`:''}
+        <button onclick="openEditAccount('${a.id}')" style="padding:2px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">Edit</button>
         <button class="del-btn" onclick="deleteAccount('${a.id}')">Del</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
@@ -8217,6 +8264,7 @@ function renderTradePTCLog() {
       <div style="font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;margin-bottom:5px">"${e.hypothesis?.slice(0,120)}${(e.hypothesis?.length||0)>120?'…':''}"</div>
       ${e.uncheckedItems?.length ? `<div style="font-size:10px;color:var(--amber);font-family:var(--mono)">⚠ ${e.uncheckedItems.join(' · ')}</div>` : '<div style="font-size:10px;color:var(--accent);font-family:var(--mono)">✓ All criteria met</div>'}
       ${e.screenshots?.length ? `<div style="display:flex;gap:4px;margin-top:5px">${e.screenshots.map(s=>`<img src="${s}" style="width:60px;height:45px;object-fit:cover;border-radius:3px;border:1px solid var(--border)">`).join('')}</div>` : ''}
+      ${e.thoughtsFormatted ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)"><div style="font-family:var(--mono);font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Pre-trade thoughts</div><div style="font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;font-family:var(--mono)">${e.thoughtsFormatted}</div></div>` : ''}
       ${e.postNotes ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Exit notes</div><div style="font-size:11px;color:var(--text2);line-height:1.5">${e.postNotes}</div></div>` : ''}
       ${e.postExit ? `<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)"><div style="font-family:var(--mono);font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Post-exit observations</div><div style="font-size:11px;color:var(--text2);line-height:1.5">${e.postExit}</div></div>` : ''}
       <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
@@ -8671,11 +8719,11 @@ async function runMarketInsights() {
   const plan = dailyPlans[today] || {};
   const traderInstruments = strategies.length ? strategies.map(s => s.name).join(', ') : 'MNQ, MES (micro futures)';
 
+  const headlineList = headlines.map((h, idx) => (idx+1) + '. ' + h).join('\n');
   const prompt = `You are a professional futures market analyst. Analyse these current market news headlines and provide concise, actionable insights for a futures trader.
 
 CURRENT NEWS HEADLINES:
-    const headlineList = headlines.map((h, idx) => (idx+1) + '. ' + h).join('\n');
-')}
+${headlineList}
 
 TRADER'S FOCUS: ${traderInstruments}
 TODAY'S CONDITION: ${CONDITION_LABELS[plan.condition] || 'not set'}
@@ -9489,7 +9537,7 @@ async function pollAlerts() {
 
     // ── Economic news keyword check ──
     if (alertConfig.cpi || alertConfig.nfp || alertConfig.fomc || alertConfig.gdp || alertConfig.medium) {
-      const newsEls = Array.from(document.querySelectorAll('#newsFeed > a'));
+      const newsEls = Array.from(document.querySelectorAll('#newsFeed > a, #marketNewsFeed > a'));
       const headlines = newsEls.map(a => {
         const divs = Array.from(a.querySelectorAll(':scope > div'));
         return divs[1]?.textContent?.trim() || '';
@@ -9726,6 +9774,249 @@ function renderEditChecklist() {
   }).join('');
 }
 
+
+// ══════════════════════════════════════════
+// EDIT ACCOUNT
+// ══════════════════════════════════════════
+let _editingAcctId = null;
+let _editAcctColor = '#00E5A0';
+
+function openEditAccount(id) {
+  const acct = accounts.find(a => a.id === id);
+  if (!acct) return;
+  _editingAcctId = id;
+  _editAcctColor = acct.color || '#00E5A0';
+
+  document.getElementById('editAcctName').value = acct.name || '';
+  document.getElementById('editAcctType').value = acct.type || 'sim';
+  document.getElementById('editAcctBalance').value = acct.startingBalance || '';
+  document.getElementById('editAcctMaxRisk').value = acct.maxRiskPct || 4;
+
+  // Prop firm fields
+  toggleEditPropFields();
+  if (acct.propLimits) {
+    const dd = document.getElementById('editPropMaxdd');
+    const dl = document.getElementById('editPropDailyloss');
+    const fn = document.getElementById('editPropFirmname');
+    if (dd) dd.value = acct.propLimits.maxDrawdown || '';
+    if (dl) dl.value = acct.propLimits.dailyLoss || '';
+    if (fn) fn.value = acct.propLimits.firmName || '';
+  }
+
+  // Color picker
+  initColorPicker('editAcctColorPicker', _editAcctColor, c => { _editAcctColor = c; });
+
+  document.getElementById('editAcctError').style.display = 'none';
+  const modal = document.getElementById('editAccountModal');
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('editAcctName')?.focus(), 50);
+}
+
+function toggleEditPropFields() {
+  const type = document.getElementById('editAcctType')?.value;
+  const form = document.getElementById('editPropLimitsForm');
+  if (form) form.style.display = type === 'prop' ? 'flex' : 'none';
+}
+
+function closeEditAccount() {
+  const modal = document.getElementById('editAccountModal');
+  if (modal) modal.style.display = 'none';
+  _editingAcctId = null;
+}
+
+function saveEditAccount() {
+  const acct = accounts.find(a => a.id === _editingAcctId);
+  if (!acct) { closeEditAccount(); return; }
+
+  const name = document.getElementById('editAcctName')?.value?.trim();
+  if (!name) {
+    const err = document.getElementById('editAcctError');
+    if (err) { err.textContent = 'Account name is required.'; err.style.display = 'block'; }
+    return;
+  }
+
+  acct.name = name;
+  acct.type = document.getElementById('editAcctType')?.value || acct.type;
+  acct.startingBalance = parseFloat(document.getElementById('editAcctBalance')?.value) || acct.startingBalance;
+  acct.maxRiskPct = parseFloat(document.getElementById('editAcctMaxRisk')?.value) || acct.maxRiskPct;
+  acct.color = _editAcctColor;
+
+  if (acct.type === 'prop') {
+    acct.propLimits = {
+      maxDrawdown: parseFloat(document.getElementById('editPropMaxdd')?.value) || null,
+      dailyLoss: parseFloat(document.getElementById('editPropDailyloss')?.value) || null,
+      firmName: document.getElementById('editPropFirmname')?.value?.trim() || null,
+    };
+  } else {
+    acct.propLimits = null;
+  }
+
+  save();
+  renderAccountManager();
+  renderSidebar();
+  populateAllSelects();
+  closeEditAccount();
+}
+
+
+// ══════════════════════════════════════════
+// TIMESTAMPED THOUGHTS
+// ══════════════════════════════════════════
+let preThoughts = [];  // [{text, time, ts}]
+let postThoughts = []; // [{text, time, ts}]
+
+function fmtThoughtTime() {
+  return new Date().toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+// ── PRE-TRADE THOUGHTS ──
+function addPreThought() {
+  const input = document.getElementById('preThoughtInput');
+  const text = input?.value?.trim();
+  if (!text) return;
+  const thought = { text, time: fmtThoughtTime(), ts: new Date().toISOString() };
+  preThoughts.push(thought);
+  input.value = '';
+  renderPreThoughts();
+  input.focus();
+}
+
+function removePreThought(idx) {
+  preThoughts.splice(idx, 1);
+  renderPreThoughts();
+}
+
+function editPreThought(idx) {
+  const thought = preThoughts[idx];
+  const input = document.getElementById('preThoughtInput');
+  if (input && thought) {
+    input.value = thought.text;
+    preThoughts.splice(idx, 1);
+    renderPreThoughts();
+    input.focus();
+  }
+}
+
+function renderPreThoughts() {
+  const el = document.getElementById('preThoughtsList');
+  if (!el) return;
+  el.innerHTML = preThoughts.map((t, i) =>
+    '<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--radius);padding:8px 10px">' +
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--blue);flex-shrink:0">' + t.time + '</span>' +
+        '<div style="margin-left:auto;display:flex;gap:4px">' +
+          '<button onclick="editPreThought(' + i + ')" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:3px">Edit</button>' +
+          '<button onclick="removePreThought(' + i + ')" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:3px">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text2);line-height:1.5">' + t.text + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+// ── POST-TRADE THOUGHTS ──
+function addPostThought() {
+  const input = document.getElementById('postThoughtInput');
+  const text = input?.value?.trim();
+  if (!text) return;
+  const thought = { text, time: fmtThoughtTime(), ts: new Date().toISOString() };
+  postThoughts.push(thought);
+  input.value = '';
+  renderPostThoughts();
+  input.focus();
+}
+
+function removePostThought(idx) {
+  postThoughts.splice(idx, 1);
+  renderPostThoughts();
+}
+
+function editPostThought(idx) {
+  const thought = postThoughts[idx];
+  const input = document.getElementById('postThoughtInput');
+  if (input && thought) {
+    input.value = thought.text;
+    postThoughts.splice(idx, 1);
+    renderPostThoughts();
+    input.focus();
+  }
+}
+
+function renderPostThoughts() {
+  const el = document.getElementById('postThoughtsList');
+  if (!el) return;
+  el.innerHTML = postThoughts.map((t, i) =>
+    '<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:8px 10px">' +
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--accent);flex-shrink:0">' + t.time + '</span>' +
+        '<div style="margin-left:auto;display:flex;gap:4px">' +
+          '<button onclick="editPostThought(' + i + ')" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:3px">Edit</button>' +
+          '<button onclick="removePostThought(' + i + ')" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid rgba(255,85,85,.3);color:var(--red);cursor:pointer;border-radius:3px">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text2);line-height:1.5">' + t.text + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+// ── FORMAT THOUGHTS FOR STORAGE AND AI ──
+function formatThoughtsForLog(thoughts) {
+  if (!thoughts || !thoughts.length) return '';
+  return thoughts.map(t => '[' + t.time + '] ' + t.text).join('\n');
+}
+
+// ── WIRE INTO logTradeChecklist ──
+const _origLogTradeChecklist = window.logTradeChecklist;
+window.logTradeChecklist = function() {
+  // Call original — it will save current state
+  _origLogTradeChecklist();
+  // The last entry in ptcLog is the one just created — attach thoughts
+  if (ptcLog.length && preThoughts.length) {
+    ptcLog[0].thoughts = [...preThoughts];
+    ptcLog[0].thoughtsFormatted = formatThoughtsForLog(preThoughts);
+    saveSessionDData();
+  }
+  preThoughts = [];
+  renderPreThoughts();
+};
+
+// ── WIRE INTO savePostTrade ──
+const _origSavePostTrade = window.savePostTrade;
+window.savePostTrade = function() {
+  // Append timestamped thoughts to post-trade notes before saving
+  if (postThoughts.length) {
+    const notesEl = document.getElementById('postTradeNotes');
+    if (notesEl) {
+      const thoughtsText = formatThoughtsForLog(postThoughts);
+      const existing = notesEl.value.trim();
+      notesEl.value = existing ? existing + '\n\n--- Real-time thoughts ---\n' + thoughtsText : '--- Real-time thoughts ---\n' + thoughtsText;
+    }
+  }
+  _origSavePostTrade();
+  postThoughts = [];
+  renderPostThoughts();
+};
+
+// ── WIRE INTO clearTradeChecklist ──
+const _origClearTrade = window.clearTradeChecklist;
+window.clearTradeChecklist = function() {
+  _origClearTrade();
+  preThoughts = [];
+  renderPreThoughts();
+};
+
+// ── WIRE INTO clearPostTrade ──
+const _origClearPost = window.clearPostTrade;
+window.clearPostTrade = function() {
+  _origClearPost();
+  postThoughts = [];
+  renderPostThoughts();
+};
+
+// ── SHOW THOUGHTS IN PRE-TRADE LOG CARD ──
+// Already handled via thoughtsFormatted field stored on entry
+// renderTradePTCLog can show it — hook into the display
+
 </script>
 
 <!-- ══ FLOATING SESSION CHAT ══ -->
@@ -9959,6 +10250,56 @@ function renderEditChecklist() {
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button onclick="closeEditPTC()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
         <button onclick="saveEditPTC()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ── EDIT ACCOUNT MODAL ── -->
+<div id="editAccountModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px 28px;width:420px;max-width:calc(100vw - 40px);box-shadow:0 12px 40px rgba(0,0,0,.8)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)">Edit Account</div>
+      <button onclick="closeEditAccount()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-group">
+        <label class="section-label">Account name</label>
+        <input type="text" class="form-input" id="editAcctName" placeholder="Account name">
+      </div>
+      <div class="form-group">
+        <label class="section-label">Account type</label>
+        <select class="form-input" id="editAcctType" onchange="toggleEditPropFields()">
+          <option value="sim">Simulated / Paper</option>
+          <option value="live">Live (Personal)</option>
+          <option value="prop">Prop Firm</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="form-group">
+          <label class="section-label">Starting balance ($)</label>
+          <input type="number" class="form-input" id="editAcctBalance" placeholder="e.g. 10000" min="0">
+        </div>
+        <div class="form-group">
+          <label class="section-label">Max risk per trade (%)</label>
+          <input type="number" class="form-input" id="editAcctMaxRisk" placeholder="4" min="0.5" max="20" step="0.5">
+        </div>
+      </div>
+      <div id="editPropLimitsForm" style="display:none;flex-direction:column;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px">
+        <div class="section-label">Prop firm rules</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label class="section-label">Max drawdown ($)</label><input type="number" class="form-input" id="editPropMaxdd" placeholder="e.g. 2000"></div>
+          <div class="form-group"><label class="section-label">Daily loss limit ($)</label><input type="number" class="form-input" id="editPropDailyloss" placeholder="e.g. 500"></div>
+        </div>
+        <div class="form-group"><label class="section-label">Firm name / challenge</label><input type="text" class="form-input" id="editPropFirmname" placeholder="e.g. APEX 50K"></div>
+      </div>
+      <div class="form-group">
+        <label class="section-label">Colour</label>
+        <div id="editAcctColorPicker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div id="editAcctError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono)"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button onclick="closeEditAccount()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:var(--radius)">Cancel</button>
+        <button onclick="saveEditAccount()" style="padding:8px 18px;font-family:var(--mono);font-size:12px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Save changes</button>
       </div>
     </div>
   </div>
