@@ -450,7 +450,6 @@ tbody td{padding:6px 8px;vertical-align:middle}
     <div id="syncDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3)"></div>
     <span id="syncLabel">Connecting...</span>
   </div>
-  <button id="signInBtn" onclick="showLoginScreen()" style="display:none;padding:2px 10px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Sign in</button>
   <button id="signOutBtn" onclick="doSignOut()" style="display:none;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:2px 8px;transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">Sign out</button>
 
   <div class="tabs">
@@ -1056,7 +1055,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
     </div>
 
     <!-- RIGHT: AI insights + news -->
-    <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+    <div style="display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;max-height:calc(100vh - 120px)">
       <!-- AI Market Insights -->
       <div class="card" style="flex-shrink:0">
         <div class="card-hdr">
@@ -1064,7 +1063,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
           <button onclick="runMarketInsights()" id="marketInsightsBtn" style="padding:2px 8px;font-size:10px;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);cursor:pointer;border-radius:var(--radius)">Analyse →</button>
         </div>
         <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:8px">Auto-analyses current news for market trajectory, affected instruments &amp; volatility warnings</div>
-        <div id="marketInsightsOutput" style="font-size:12px;color:var(--text2);line-height:1.7;min-height:60px">
+        <div id="marketInsightsOutput" style="max-height:280px;overflow-y:auto" style="font-size:12px;color:var(--text2);line-height:1.7;min-height:60px">
           <span style="color:var(--text3);font-family:var(--mono)">Click Analyse to get AI insights based on current news headlines.</span>
         </div>
         <div id="marketInsightsMeta" style="display:none;margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--text3)"></div>
@@ -4083,15 +4082,14 @@ async function initApp() {
 // Try to restore saved session, otherwise show login
 (async function startup() {
   // Hide both auth buttons until state is known
-  ['signInBtn','signOutBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const signOutBtn=document.getElementById('signOutBtn');if(signOutBtn)signOutBtn.style.display='none';
   const restored = await tryRestoreSession();
   if (restored) {
     hideLoginScreen();
     await initApp();
   } else {
     showLoginScreen();
-    const signIn=document.getElementById('signInBtn');
-    if(signIn)signIn.style.display='block';
+  
   }
 })();
 
@@ -7435,10 +7433,14 @@ async function doLogin() {
 
     // Success — store session
     sbSession = data;
+    const rememberMe = document.getElementById('rememberMe')?.checked !== false;
+    const expiryMs = rememberMe ? 30 * 24 * 3600 * 1000 : data.expires_in * 1000;
     localStorage.setItem('tj_sb_session', JSON.stringify({
       access_token: data.access_token,
       refresh_token: data.refresh_token,
-      expires_at: Date.now() + (data.expires_in * 1000)
+      expires_at: Date.now() + expiryMs,
+      user: data.user,
+      rememberMe
     }));
 
     // Hide login screen, show app
@@ -7490,7 +7492,7 @@ async function tryRestoreSession() {
     if (!saved) return false;
     const s = JSON.parse(saved);
     // Check if expired (with 60s buffer)
-    if (Date.now() > s.expires_at - 60000) {
+    if (Date.now() > s.expires_at - (s.rememberMe ? 300000 : 60000)) {
       // Try to refresh using refresh_token
       const refreshed = await sbAuthFetch('token?grant_type=refresh_token', {
         refresh_token: s.refresh_token
@@ -7529,9 +7531,7 @@ function showLoginScreen() {
   if (card) card.style.visibility = 'visible';
   if (chatBtn) chatBtn.style.display = 'none';
   // Toggle auth buttons
-  const signIn = document.getElementById('signInBtn');
   const signOut = document.getElementById('signOutBtn');
-  if (signIn) signIn.style.display = 'none'; // hidden while on login screen
   if (signOut) signOut.style.display = 'none';
   setTimeout(() => document.getElementById('loginEmail')?.focus(), 100);
 }
@@ -7542,9 +7542,7 @@ function hideLoginScreen() {
   if (login) login.style.display = 'none';
   if (chatBtn) chatBtn.style.display = 'flex';
   // Show sign out, hide sign in
-  const signIn = document.getElementById('signInBtn');
   const signOut = document.getElementById('signOutBtn');
-  if (signIn) signIn.style.display = 'none';
   if (signOut) signOut.style.display = 'block';
 }
 
@@ -10279,20 +10277,19 @@ async function loadFinnhubNews(allItems, apiKey) {
   results.flat().forEach(item => {
     if (!item.headline || !item.url || seen.has(item.headline)) return;
     seen.add(item.headline);
-    const title = item.headline;
-    const hasFuturesKeyword = FUTURES_KW.some(k => title.toLowerCase().includes(k)) ||
-      (item.related || '').toLowerCase().split(',').some(r => ['NQ','ES','MNQ','MES','CL','GC'].includes(r.trim()));
-    if (hasFuturesKeyword || categories[0] === 'general') {
-      allItems.unshift({
-        title,
-        link: item.url,
-        pubDate: new Date(item.datetime * 1000).toUTCString(),
-        source: (item.source || 'Finnhub').split('.')[0],
-        summary: item.summary || '',
-        _finnhub: true
-      });
-    }
+    // Include all Finnhub articles - already curated financial news
+    allItems.unshift({
+      title: item.headline,
+      link: item.url,
+      pubDate: new Date(item.datetime * 1000).toUTCString(),
+      source: (item.source || 'Finnhub').split('.')[0].replace(/^www\./i,''),
+      summary: (item.summary || '').slice(0, 200),
+      _finnhub: true
+    });
   });
+  // Keep newest 30 Finnhub articles
+  const fh = allItems.filter(i => i._finnhub);
+  fh.slice(30).forEach(i => allItems.splice(allItems.indexOf(i), 1));
 }
 
 function saveFinnhubKey() {
@@ -11107,6 +11104,10 @@ function initFinnhubSettings() {
           onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <div id="loginError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono);background:rgba(255,85,85,.08);border:1px solid rgba(255,85,85,.2);border-radius:var(--radius);padding:7px 10px"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;margin-bottom:4px">
+        <input type="checkbox" id="rememberMe" checked style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px">
+        <label for="rememberMe" style="font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--mono)">Remember me for 30 days</label>
+      </div>
       <button id="loginBtn" onclick="doLogin()"
         style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:4px">
         Sign in →
