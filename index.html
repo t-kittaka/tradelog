@@ -450,6 +450,7 @@ tbody td{padding:6px 8px;vertical-align:middle}
     <div id="syncDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3)"></div>
     <span id="syncLabel">Connecting...</span>
   </div>
+  <button id="signInBtn" onclick="showLoginScreen()" style="display:none;padding:2px 10px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500">Sign in</button>
   <button id="signOutBtn" onclick="doSignOut()" style="display:none;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);padding:2px 8px;transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">Sign out</button>
 
   <div class="tabs">
@@ -887,18 +888,10 @@ tbody td{padding:6px 8px;vertical-align:middle}
     ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
     <div style="font-size:20px;color:var(--text3)">⬆</div>
     <p>Drop NinjaTrader CSV here or click to browse</p>
-    <div class="iz-hint">Control Center → Trade Performance → Executions → Right-click → Export</div>
+    <div class="iz-hint">Drop your NinjaTrader CSV here — Trade Executions <strong>or</strong> Orders file</div>
+    <div class="iz-hint" style="margin-top:3px;font-size:9px;opacity:.7">Executions export: Control Center → Trade Performance → Executions → Right-click → Export<br>Orders export: Control Center → Orders → Right-click → Export</div>
     <input type="file" id="csvFile" accept=".csv" onchange="handleFile(event)">
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);width:100%">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">⚡ Also import orders file to auto-detect stop/target adjustments</div>
-      <div id="ordersImportZone" style="border:1px dashed rgba(255,179,71,.4);border-radius:var(--radius);padding:10px 14px;cursor:pointer;text-align:center;background:rgba(255,179,71,.04)"
-        ondrop="handleOrdersDrop(event)" ondragover="event.preventDefault();this.style.borderColor='var(--amber)'" ondragleave="this.style.borderColor='rgba(255,179,71,.4)'"
-        onclick="document.getElementById('ordersFileInput').click()">
-        <div style="font-size:12px;color:var(--text2)">Drop NinjaTrader <strong>Orders</strong> CSV here · or click to browse</div>
-        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:3px">NinjaTrader → Control Center → Orders tab → Right-click → Export</div>
-      </div>
-      <input type="file" id="ordersFileInput" accept=".csv" style="display:none" onchange="handleOrdersFile(event)">
-    </div>
+    <input type="file" id="ordersFileInput" accept=".csv" style="display:none" onchange="handleOrdersFile(event)">
   </div><!-- /importExpanded -->
   <div class="stats-grid" id="statsRow" style="display:none">
     <div class="stat-card"><div class="sc-label">Trades</div><div class="sc-val" id="st-total">0</div></div>
@@ -1556,6 +1549,34 @@ tbody td{padding:6px 8px;vertical-align:middle}
     </div>
   </div>
 
+  <!-- ══ NEWS API SECTION ══ -->
+  <div id="newsApiSection" style="scroll-margin-top:14px;margin-top:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">📰 Market News API</div>
+    <div class="card">
+      <div class="card-hdr">
+        <h3 style="margin:0;font-size:11px;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.1em">News Source</h3>
+        <span id="newsApiStatus" style="font-size:10px;font-family:var(--mono);color:var(--text3)">RSS feeds (default)</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">
+        By default, Trade Boy fetches news from Reuters, CNBC, MarketWatch, and Benzinga via RSS.
+        For richer, real-time financial news add a <strong style="color:var(--text)">Finnhub API key</strong> (free at
+        <a href="https://finnhub.io" target="_blank" rel="noopener" style="color:var(--accent)">finnhub.io</a> — takes 60 seconds).
+        Finnhub gives you real-time market news, earnings calendars, and economic events all in one feed.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="finnhubKeyInput" class="form-input" placeholder="Enter Finnhub API key (e.g. d1234abc...)" style="flex:1;font-family:var(--mono);font-size:12px">
+        <button onclick="saveFinnhubKey()" style="padding:6px 14px;font-family:var(--mono);font-size:11px;background:var(--accent);border:none;color:#000;cursor:pointer;border-radius:var(--radius);font-weight:500;flex-shrink:0">Save key</button>
+        <button onclick="clearFinnhubKey()" style="padding:6px 14px;font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--border);color:var(--text3);cursor:pointer;border-radius:var(--radius);flex-shrink:0">Clear</button>
+      </div>
+      <div id="finnhubKeyStatus" style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:10px"></div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.6">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Note on Yahoo Finance</div>
+        Yahoo Finance's paid subscription does not include API access for third-party apps — this is a Yahoo policy limitation, not a Trade Boy limitation.
+        Finnhub provides equivalent or better financial news coverage with a proper API and is the recommended alternative.
+      </div>
+    </div>
+  </div>
+
   <!-- ══ MEMORY SECTION ══ -->
   <div id="memorySection" style="scroll-margin-top:14px;margin-top:16px">
     <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:8px 0 6px;border-top:1px solid var(--border)">🧠 Coaching Memory</div>
@@ -1802,7 +1823,7 @@ async function syncToCloud(){
     if(strategies.length)await sbUpsert('tl_strategies',strategies.map(s=>({id:s.id,data:s,updated_at:new Date().toISOString()})));
     if(accounts.length)await sbUpsert('tl_accounts',accounts.map(a=>({id:a.id,data:a,updated_at:new Date().toISOString()})));
     const planArr=Object.entries(dailyPlans);
-    if(planArr.length)await sbUpsert('tl_plans',planArr.map(([date,data])=>({date,data,updated_at:new Date().toISOString()})));
+    if(planArr.length)await sbUpsert('tl_plans',planArr.map(([date,data])=>({date,data,updated_at:new Date().toISOString()}))).catch(()=>{});
     await Promise.all([
       sbMiscSet('evolution_log',evolutionLog),
       sbMiscSet('alert_config',alertConfig),
@@ -1814,7 +1835,12 @@ async function syncToCloud(){
       sbMiscSet('ptc_log',ptcLog),
     ]);
     setSyncStatus('connected');
-  }catch(e){console.warn('Cloud sync error:',e);setSyncStatus('error');}
+  }catch(e){
+    console.warn('Cloud sync error:',e);
+    // Only show offline if it's a connectivity error, not a missing table error
+    if(e.message&&e.message.includes('fetch'))setSyncStatus('offline');
+    else setSyncStatus('connected'); // table errors don't mean we're offline
+  }
 }
 
 async function load(){
@@ -1834,7 +1860,9 @@ async function load(){
   try{
     const [sbT,sbTD,sbS,sbA,sbP]=await Promise.all([
       sbGetAll('tl_trades'),sbGetAll('tl_trade_data'),
-      sbGetAll('tl_strategies'),sbGetAll('tl_accounts'),sbGetAll('tl_plans')
+      sbGetAll('tl_strategies'),sbGetAll('tl_accounts'),
+      // tl_plans may not exist — handle gracefully
+      sbGetAll('tl_plans').catch(() => [])
     ]);
     if(sbT&&sbT.length)trades=sbT.map(r=>r.data);
     if(sbTD&&sbTD.length)tradeData=Object.fromEntries(sbTD.map(r=>[r.trade_id,r.data]));
@@ -1867,7 +1895,12 @@ async function load(){
     localStorage.setItem('tj_plans',JSON.stringify(dailyPlans));
   }catch(e){
     console.warn('Cloud load failed, using local cache:',e);
-    sbReady=false;setSyncStatus('offline');
+    // If we have a valid session but a table is missing (non-network error), stay connected
+    if(sbSession && e.message && !e.message.includes('fetch')){
+      sbReady=true; setSyncStatus('connected');
+    } else {
+      sbReady=false; setSyncStatus('offline');
+    }
   }
 }
 function initDefaults(){
@@ -1915,6 +1948,7 @@ function switchTab(tab){
     renderMemoryTab();
     renderInstrTableSettings();
     initAlertsTab();
+    initFinnhubSettings();
     updateAlertToggleUI();
     // Sync alert log to settings panel
     const alertLogSettings = document.getElementById('alertLogSettings');
@@ -2118,8 +2152,8 @@ function updateStats(){
 // ══════════════════════════════════════════
 // CSV IMPORT
 // ══════════════════════════════════════════
-function handleDrop(e){e.preventDefault();document.getElementById('importZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);}
-function handleFile(e){if(e.target.files[0])processFile(e.target.files[0]);}
+function handleDrop(e){e.preventDefault();document.getElementById('importZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)smartImportFile(f);}
+function handleFile(e){if(e.target.files[0])smartImportFile(e.target.files[0]);}
 function processFile(file){const r=new FileReader();r.onload=e=>parseCSV(e.target.result);r.readAsText(file);}
 function parseCSV(text){
   const lines=text.trim().split('\n').filter(l=>l.trim());
@@ -3628,7 +3662,18 @@ let cachedNewsItems=[];
 async function loadNews(){
   const feed=document.getElementById('newsFeed');
   feed.innerHTML='<div class="empty-state">Loading<span class="loading-dots"></span></div>';
-  const allItems=[];const PROXY='https://api.allorigins.win/get?url=';
+  const allItems=[];
+
+  // Try Finnhub first if key is configured
+  const finnhubKey = localStorage.getItem('tj_finnhub_key');
+  if (finnhubKey) {
+    try {
+      await loadFinnhubNews(allItems, finnhubKey);
+    } catch(e) { console.warn('Finnhub news failed, falling back to RSS:', e.message); }
+  }
+
+  // Also load RSS feeds (supplement Finnhub or use as primary fallback)
+  const PROXY='https://api.allorigins.win/get?url=';
   for(const src of NEWS_SOURCES){
     try{
       const res=await fetch(PROXY+encodeURIComponent(src.url));
@@ -3658,7 +3703,7 @@ async function loadNews(){
     const a=document.createElement('a');
     a.href=item.link||'#';a.target='_blank';a.rel='noopener noreferrer';
     a.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;cursor:pointer;transition:all .12s;text-decoration:none;display:block';
-    a.innerHTML=`<div style="font-size:10px;font-family:var(--mono);color:var(--accent)">${item.source}${tag}</div><div style="font-size:12px;color:var(--text);margin-top:2px;line-height:1.4">${item.title}</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px">${timeStr}</div>`;
+    a.innerHTML=`<div style="display:flex;align-items:center;gap:5px"><span style="font-size:10px;font-family:var(--mono);color:var(--accent)">${item.source}</span>${tag}${item._finnhub?'<span style="font-size:8px;font-family:var(--mono);background:rgba(0,229,160,.1);color:var(--accent);padding:1px 4px;border-radius:3px">FH</span>':''}</div><div style="font-size:12px;color:var(--text);margin-top:2px;line-height:1.4">${item.title}</div>${item.summary?`<div style="font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.summary}</div>`:''}<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px">${timeStr}</div>`;
     feed.appendChild(a);
   });
   syncCoachNews();
@@ -4037,12 +4082,16 @@ async function initApp() {
 
 // Try to restore saved session, otherwise show login
 (async function startup() {
+  // Hide both auth buttons until state is known
+  ['signInBtn','signOutBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   const restored = await tryRestoreSession();
   if (restored) {
     hideLoginScreen();
     await initApp();
   } else {
     showLoginScreen();
+    const signIn=document.getElementById('signInBtn');
+    if(signIn)signIn.style.display='block';
   }
 })();
 
@@ -7469,7 +7518,6 @@ async function tryRestoreSession() {
 function showLoginScreen() {
   const login = document.getElementById('loginScreen');
   const chatBtn = document.getElementById('chatFloatBtn');
-  // Show the login overlay - it is position:fixed so it covers everything
   if (login) {
     login.style.display = 'flex';
     login.style.alignItems = 'center';
@@ -7479,8 +7527,12 @@ function showLoginScreen() {
   }
   const card = login?.firstElementChild;
   if (card) card.style.visibility = 'visible';
-  // Do NOT hide .app - login overlay covers it via z-index
   if (chatBtn) chatBtn.style.display = 'none';
+  // Toggle auth buttons
+  const signIn = document.getElementById('signInBtn');
+  const signOut = document.getElementById('signOutBtn');
+  if (signIn) signIn.style.display = 'none'; // hidden while on login screen
+  if (signOut) signOut.style.display = 'none';
   setTimeout(() => document.getElementById('loginEmail')?.focus(), 100);
 }
 
@@ -7489,6 +7541,11 @@ function hideLoginScreen() {
   const chatBtn = document.getElementById('chatFloatBtn');
   if (login) login.style.display = 'none';
   if (chatBtn) chatBtn.style.display = 'flex';
+  // Show sign out, hide sign in
+  const signIn = document.getElementById('signInBtn');
+  const signOut = document.getElementById('signOutBtn');
+  if (signIn) signIn.style.display = 'none';
+  if (signOut) signOut.style.display = 'block';
 }
 
 // Auto-refresh session every 50 minutes (tokens last 1 hour)
@@ -8332,8 +8389,11 @@ async function runMarketInsights() {
   const traderInstruments = strategies.length ? strategies.map(s => s.name).join(', ') : 'MNQ, MES (micro futures)';
 
   const headlineList = headlines.map((h, idx) => (idx+1) + '. ' + h).join('\n');
+  const hasFinnhub = !!localStorage.getItem('tj_finnhub_key');
+  const newsSource = hasFinnhub ? 'Finnhub real-time feed' : 'Reuters, CNBC, MarketWatch, Benzinga RSS';
   const prompt = `You are a professional futures market analyst. Analyse these current market news headlines and provide concise, actionable insights for a futures trader.
 
+NEWS SOURCE: ${newsSource}
 CURRENT NEWS HEADLINES:
 ${headlineList}
 
@@ -10172,6 +10232,115 @@ async function autoDetectMarketCondition(trade, hintEl) {
   } catch(e) {
     if (hintEl) { hintEl.textContent = 'Auto-detect unavailable — select manually'; hintEl.style.color = 'var(--text3)'; }
     console.warn('autoDetectMarketCondition:', e.message);
+  }
+}
+
+
+// ── Smart CSV import — auto-detects trades vs orders file ──
+function smartImportFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const firstLine = text.split('\n')[0].toLowerCase();
+    // Orders file signature: has 'action' and 'state' columns, no 'profit' or 'entry price'
+    const isOrders = firstLine.includes('action') && firstLine.includes('state') &&
+                     !firstLine.includes('profit') && !firstLine.includes('entry price');
+    if (isOrders) {
+      // Route to orders enrichment
+      const importZone = document.getElementById('importZone');
+      if (importZone) {
+        importZone.style.borderColor = 'var(--amber)';
+        setTimeout(() => importZone.style.borderColor = '', 1500);
+      }
+      parseOrdersCSV(text);
+    } else {
+      readCSV(file);
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+// ══════════════════════════════════════════
+// FINNHUB NEWS INTEGRATION
+// ══════════════════════════════════════════
+const FINNHUB_BASE = 'https://finnhub.io/api/v1';
+
+async function loadFinnhubNews(allItems, apiKey) {
+  // Fetch general market news
+  const categories = ['general','forex','merger'];
+  const results = await Promise.all(categories.map(cat =>
+    fetch(FINNHUB_BASE + '/news?category=' + cat + '&minId=0&token=' + apiKey)
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => [])
+  ));
+
+  const seen = new Set();
+  results.flat().forEach(item => {
+    if (!item.headline || !item.url || seen.has(item.headline)) return;
+    seen.add(item.headline);
+    const title = item.headline;
+    const hasFuturesKeyword = FUTURES_KW.some(k => title.toLowerCase().includes(k)) ||
+      (item.related || '').toLowerCase().split(',').some(r => ['NQ','ES','MNQ','MES','CL','GC'].includes(r.trim()));
+    if (hasFuturesKeyword || categories[0] === 'general') {
+      allItems.unshift({
+        title,
+        link: item.url,
+        pubDate: new Date(item.datetime * 1000).toUTCString(),
+        source: (item.source || 'Finnhub').split('.')[0],
+        summary: item.summary || '',
+        _finnhub: true
+      });
+    }
+  });
+}
+
+function saveFinnhubKey() {
+  const key = document.getElementById('finnhubKeyInput')?.value?.trim();
+  const statusEl = document.getElementById('finnhubKeyStatus');
+  if (!key) { if (statusEl) { statusEl.textContent = 'Enter a key first.'; statusEl.style.color = 'var(--red)'; } return; }
+
+  // Test the key
+  if (statusEl) { statusEl.textContent = 'Testing key…'; statusEl.style.color = 'var(--text3)'; }
+  fetch(FINNHUB_BASE + '/news?category=general&minId=0&token=' + key)
+    .then(r => {
+      if (r.status === 401) throw new Error('Invalid API key');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      if (!Array.isArray(data)) throw new Error('Unexpected response');
+      localStorage.setItem('tj_finnhub_key', key);
+      if (statusEl) { statusEl.textContent = '✓ Key saved and working — ' + data.length + ' articles available. Reloading news…'; statusEl.style.color = 'var(--accent)'; }
+      const apiStatus = document.getElementById('newsApiStatus');
+      if (apiStatus) { apiStatus.textContent = 'Finnhub (real-time)'; apiStatus.style.color = 'var(--accent)'; }
+      loadNews(); // Reload news with Finnhub
+    })
+    .catch(e => {
+      if (statusEl) { statusEl.textContent = '✗ ' + e.message + ' — check your key at finnhub.io/dashboard'; statusEl.style.color = 'var(--red)'; }
+    });
+}
+
+function clearFinnhubKey() {
+  localStorage.removeItem('tj_finnhub_key');
+  const input = document.getElementById('finnhubKeyInput');
+  const statusEl = document.getElementById('finnhubKeyStatus');
+  const apiStatus = document.getElementById('newsApiStatus');
+  if (input) input.value = '';
+  if (statusEl) { statusEl.textContent = 'Key cleared — using RSS feeds.'; statusEl.style.color = 'var(--text3)'; }
+  if (apiStatus) { apiStatus.textContent = 'RSS feeds (default)'; apiStatus.style.color = 'var(--text3)'; }
+  loadNews();
+}
+
+function initFinnhubSettings() {
+  const key = localStorage.getItem('tj_finnhub_key');
+  const input = document.getElementById('finnhubKeyInput');
+  const statusEl = document.getElementById('finnhubKeyStatus');
+  const apiStatus = document.getElementById('newsApiStatus');
+  if (key) {
+    if (input) input.value = key.slice(0, 6) + '…' + key.slice(-4);
+    if (statusEl) { statusEl.textContent = '✓ Finnhub key active'; statusEl.style.color = 'var(--accent)'; }
+    if (apiStatus) { apiStatus.textContent = 'Finnhub (real-time)'; apiStatus.style.color = 'var(--accent)'; }
   }
 }
 
