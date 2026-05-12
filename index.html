@@ -2138,7 +2138,10 @@ function parseCSV(text){
     commission:fc(['commission','comm','fees']),
     mae:fc(['mae']),
     mfe:fc(['mfe']),
-    exitName:fc(['exit name','exit type','exit reason'])
+    exitName:fc(['exit name','exit type','exit reason']),
+    entryName:fc(['entry name']),
+    initialStop:fc(['stop','initial stop','stop price']),
+    initialTarget:fc(['target','initial target','target price','limit'])
   };
   // Strip futures contract month suffix: 'NQ JUN26' -> 'NQ'
   function normalizeInstrument(raw){
@@ -2169,12 +2172,21 @@ function parseCSV(text){
     const maeRaw=g('mae');const mfeRaw=g('mfe');
     const maeTicks=maeRaw.includes('$')?dollarToTicks(maeRaw,instrSym):(parseFloat(maeRaw)||null);
     const mfeTicks=mfeRaw.includes('$')?dollarToTicks(mfeRaw,instrSym):(parseFloat(mfeRaw)||null);
+    const exitNameVal = g('exitName');
+    const entryNameVal = g('entryName');
+    // Extract stop and target prices from order columns if present
+    const rawInitStop = g('initialStop');
+    const rawInitTarget = g('initialTarget');
+    const initialStopPrice = rawInitStop && !rawInitStop.includes('Entry') ? (parseFloat(rawInitStop.replace(/[$,]/g,''))||null) : null;
+    const initialTargetPrice = rawInitTarget && !rawInitTarget.includes('Entry') ? (parseFloat(rawInitTarget.replace(/[$,]/g,''))||null) : null;
     newTrades.push({id:'T'+Date.now()+'_'+i,entryTime:entryT,exitTime:exitT,
       instrument:instrSym,
       direction:normalizeDir(g('direction')),qty,entryPrice:entryP,exitPrice:exitP,
       pnl:pnlRaw,commission:parseFloat(g('commission').replace(/[$,]/g,''))||0,
       durationMins,importAccount:acctId,rMultiple:null,
-      _importedMAE:maeTicks,_importedMFE:mfeTicks,_exitName:g('exitName')});
+      _importedMAE:maeTicks,_importedMFE:mfeTicks,
+      _exitName:exitNameVal,_entryName:entryNameVal,
+      _initialStop:initialStopPrice,_initialTarget:initialTargetPrice});
   }
   // Filter out any rows that look like orders (no P&L, direction is order type)
   const orderDirs = new Set(['market','stop market','limit','stop','buy','sell','buy to cover','sell short']);
@@ -2196,6 +2208,32 @@ function parseCSV(text){
       // Write imported MAE/MFE to tradeData if present
       if(t._importedMAE!=null)tradeData[t.id].mae=t._importedMAE;
       if(t._importedMFE!=null)tradeData[t.id].mfe=t._importedMFE;
+      // Auto-populate stop loss and target from exit/entry data
+      // If explicit stop/target columns exist in CSV, use them
+      if(t._initialStop) tradeData[t.id].stopLoss = t._initialStop;
+      if(t._initialTarget) tradeData[t.id].target = t._initialTarget;
+      // Derive from exit: if stopped out, exit price = where stop was hit (final stop)
+      // If target hit, exit price = target that was hit
+      const eN = (t._exitName||'').toLowerCase();
+      if(!tradeData[t.id].stopLoss && eN.includes('stop')) {
+        tradeData[t.id].stopLoss = t.exitPrice; // final stop = where it was hit
+      }
+      if(!tradeData[t.id].target && (eN.includes('target') || eN.includes('limit'))) {
+        tradeData[t.id].target = t.exitPrice; // target = where it was hit
+      }
+      // Derive initial stop from MAE if still missing (best estimate)
+      // For long: entry - (mae_ticks * tickSize) = approx worst point = stop area
+      // This is an estimate only, flag it
+      if(!tradeData[t.id].stopLoss && t._importedMAE) {
+        const instr = INSTRUMENTS[t.instrument];
+        if(instr) {
+          const maePrice = t.direction==='Long'
+            ? t.entryPrice - (t._importedMAE * instr.tickSize)
+            : t.entryPrice + (t._importedMAE * instr.tickSize);
+          tradeData[t.id]._stopEstimated = true; // flag as estimated
+          tradeData[t.id].stopLoss = Math.round(maePrice * 100)/100;
+        }
+      }
       added++;
     }
   }
@@ -2347,8 +2385,18 @@ function openModal(idx){
   const instr=INSTRUMENTS[t.instrument]||INSTRUMENTS['MNQ'];
   const priceDiff=Math.abs((t.exitPrice||t.entryPrice)-t.entryPrice);
   const ticks=Math.round(priceDiff/instr.tickSize);
-  // Initial risk field
-  const initRiskVal=td.initialRisk||'';
+  // Auto-calculate initial risk from stop loss if not yet set
+  if (!td.initialRisk && td.stopLoss && t.entryPrice) {
+    const instrRef = INSTRUMENTS[t.instrument] || INSTRUMENTS['MNQ'];
+    const stopTicks = Math.abs(t.entryPrice - td.stopLoss) / instrRef.tickSize;
+    const autoRisk = Math.round(stopTicks * instrRef.tickValue * (t.qty || 1) * 100) / 100;
+    if (autoRisk > 0) {
+      td.initialRisk = autoRisk;
+      td._riskAutoCalc = true;
+      if (!t.rMultiple && t.pnl) t.rMultiple = t.pnl / autoRisk;
+    }
+  }
+  const initRiskVal = td.initialRisk || '';
   document.getElementById('modalDataGrid').innerHTML=`
     <div class="modal-field"><div class="mf-label">Direction</div><div class="mf-val" style="color:${t.direction==='Long'?'var(--accent)':'var(--red)'}">${t.direction}</div></div>
     <div class="modal-field"><div class="mf-label">Instrument</div><div class="mf-val">${t.instrument}</div></div>
@@ -2363,6 +2411,7 @@ function openModal(idx){
       <input type="number" class="form-input-mono" style="width:160px;margin-top:4px" placeholder="e.g. 25.00" value="${initRiskVal}" 
         oninput="updateInitialRisk(this.value)" step="0.01">
       <span style="font-family:var(--mono);font-size:12px;margin-left:10px;color:${t.rMultiple>=0?'var(--accent)':'var(--red)'}" id="rMultipleDisplay">${t.rMultiple!==null&&t.rMultiple!==undefined?fmtR(t.rMultiple):'Enter risk above'}</span>
+      ${td._riskAutoCalc?'<span style="font-size:10px;font-family:var(--mono);color:var(--accent);margin-left:8px">✓ Auto-calculated from stop</span>':''}
     </div>`;
   const flagEl=document.getElementById('modalRiskFlag');
   if(t.flagged){flagEl.classList.remove('hidden');document.getElementById('riskFlagText').textContent=`Loss $${riskAmt.toFixed(2)} = ${riskPct}% of account (limit $${(balance*.04).toFixed(2)})`;}
@@ -2383,6 +2432,12 @@ function openModal(idx){
     if(!td.condition&&defaultCond){
       condHintEl.textContent='Defaulted from daily plan — change if this trade differed';
       condHintEl.style.display='block';
+    } else if (!td.condition) {
+      condHintEl.textContent='Auto-detecting from chart data…';
+      condHintEl.style.display='block';
+      condHintEl.style.color='var(--text3)';
+      // Auto-detect market condition if not set
+      autoDetectMarketCondition(t, condHintEl);
     } else {
       condHintEl.style.display='none';
     }
@@ -5106,6 +5161,17 @@ window.openModal=function(idx){
   // Stop loss
   const slEl=document.getElementById('modalStopLoss');
   if(slEl)slEl.value=td.stopLoss||'';
+  // Show estimated indicator if stop was derived from MAE
+  const stopHint = document.getElementById('modalSLTicks');
+  if(stopHint && td.stopLoss) {
+    if(td._stopEstimated) {
+      stopHint.dataset.hint = '⚠ Estimated from MAE — verify';
+      stopHint.style.color = 'var(--amber)';
+    } else if(td._stopSource === 'orders_import') {
+      stopHint.dataset.hint = '✓ Auto-filled from orders file';
+      stopHint.style.color = 'var(--accent)';
+    }
+  }
 
   // Target
   const tpEl=document.getElementById('modalTarget');
@@ -9618,6 +9684,21 @@ function populatePTCLinkDropdown(trade) {
           tdRef.confidence = bestMatch.confidence;
           setConf(bestMatch.confidence);
         }
+        // Auto-apply strategy, stop, screenshots, checklist
+        if (bestMatch.stratId) {
+          const stratSel = document.getElementById('modalStrat');
+          if (stratSel && !tdRef.strategy) stratSel.value = bestMatch.stratId;
+        }
+        if (bestMatch.stop && !tdRef.stopLoss) {
+          const slEl = document.getElementById('modalStopLoss');
+          if (slEl && !slEl.value) { slEl.value = bestMatch.stop; setTimeout(recalcTradeMetrics, 50); }
+        }
+        if (bestMatch.target && !tdRef.target) {
+          const tpEl = document.getElementById('modalTarget');
+          if (tpEl && !tpEl.value) { tpEl.value = bestMatch.target; setTimeout(recalcTradeMetrics, 50); }
+        }
+        applyPTCScreenshotsToModal(bestMatch);
+        renderPTCChecklistInModal(bestMatch);
       }
     } else {
       document.getElementById('modalPTCMatchHint').style.display = 'none';
@@ -9644,15 +9725,63 @@ function applyPTCToModal() {
   }
   renderPTCPreview(ptcId, false);
 
-  // Populate hypothesis and confidence from PTC entry
+  // Populate all PTC fields into the modal
   const entry = ptcLog.find(e => e.id === ptcId);
   if (!entry) return;
+
+  // Hypothesis
   const hypEl = document.getElementById('modalHypothesis');
-  if (hypEl && entry.hypothesis) {
-    hypEl.value = entry.hypothesis;
-    saveTradeData();
-  }
+  if (hypEl && entry.hypothesis) { hypEl.value = entry.hypothesis; }
+
+  // Confidence
   if (entry.confidence) setConf(entry.confidence);
+
+  // Strategy
+  const stratSel = document.getElementById('modalStrat');
+  if (stratSel && entry.stratId) stratSel.value = entry.stratId;
+
+  // Pre-trade stop from PTC entry (only if not already from orders/exit)
+  if (entry.stop && !tradeData[trades[currentTradeIdx]?.id]?.stopLoss) {
+    const slEl = document.getElementById('modalStopLoss');
+    if (slEl) { slEl.value = entry.stop; recalcTradeMetrics(); }
+  }
+
+  // Pre-trade target from PTC entry
+  if (entry.target && !tradeData[trades[currentTradeIdx]?.id]?.target) {
+    const tpEl = document.getElementById('modalTarget');
+    if (tpEl) { tpEl.value = entry.target; recalcTradeMetrics(); }
+  }
+
+  // Pre-trade screenshots — inject into screenshot area
+  applyPTCScreenshotsToModal(entry);
+
+  // PTC checklist — show in the modal
+  renderPTCChecklistInModal(entry);
+
+  saveTradeData();
+}
+
+function applyPTCScreenshotsToModal(entry) {
+  // Add PTC screenshots to the review modal screenshot area
+  const screenshots = entry.screenshots || [];
+  if (!screenshots.length) return;
+  // Find or create the PTC screenshots section in the modal
+  let ptcSSSection = document.getElementById('modalPTCScreenshots');
+  if (!ptcSSSection) {
+    const screenshotArea = document.getElementById('screenshotArea');
+    if (!screenshotArea) return;
+    ptcSSSection = document.createElement('div');
+    ptcSSSection.id = 'modalPTCScreenshots';
+    ptcSSSection.style.cssText = 'margin-top:8px;padding-top:8px;border-top:1px solid var(--border)';
+    screenshotArea.parentElement.appendChild(ptcSSSection);
+  }
+  ptcSSSection.innerHTML = '<div style="font-family:var(--mono);font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Pre-trade screenshots (from checklist)</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    screenshots.map((src, i) =>
+      '<img src="' + src + '" style="height:80px;border-radius:4px;border:1px solid var(--border);cursor:pointer;object-fit:cover" ' +
+      'onclick="(function(s){var p=document.getElementById(&quot;screenshotPreview&quot;);var a=document.getElementById(&quot;screenshotArea&quot;);if(p){p.src=s;p.classList.remove(&quot;hidden&quot;);}if(a)a.style.display=&quot;none&quot;;})(this.src)" ' +
+      'title="Pre-trade screenshot ' + (i+1) + '">'
+    ).join('')
 }
 
 function renderPTCPreview(ptcId, autoMatched) {
@@ -9891,19 +10020,42 @@ function parseOrdersCSV(text) {
       }
     });
 
-    if (adjustments.length) {
+    if (stopOrders.length || targetOrders.length || adjustments.length) {
       const td = tradeData[trade.id] = tradeData[trade.id] || {};
-      // Merge: keep any manually entered adjustments, add new ones from import
-      const existing = (td.stopAdjustments || []).filter(a => !a.source);
-      td.stopAdjustments = [...existing, ...adjustments];
-      enriched++;
-      adjTotal += adjustments.length;
+
+      // Initial stop = first Stop1 order's stop price (before any adjustments)
+      const firstStop = stopOrders[0];
+      if (firstStop && firstStop.stop && !td.stopLoss) {
+        td.stopLoss = firstStop.stop;
+        td._stopSource = 'orders_import';
+        td._stopEstimated = false;
+      }
+
+      // Initial target = first Target1 order's limit price
+      const firstTarget = targetOrders[0];
+      if (firstTarget && firstTarget.limit && !td.target) {
+        td.target = firstTarget.limit;
+        td._targetSource = 'orders_import';
+      }
+
+      // Adjustment sequence (all cancelled orders = moves)
+      if (adjustments.length) {
+        const existing = (td.stopAdjustments || []).filter(a => !a.source);
+        td.stopAdjustments = [...existing, ...adjustments];
+        enriched++;
+        adjTotal += adjustments.length;
+      }
     }
   });
 
   save();
   renderAll();
-  alert(`Orders import complete.\n${enriched} trades enriched with ${adjTotal} stop/target adjustments.\nOpen any trade Review to see them. You can edit the reason field for each one.`);
+  // Count how many got stop/target auto-populated
+const autoPopulated = trades.filter(t => tradeData[t.id]?._stopSource === 'orders_import').length;
+alert(`Orders import complete.\n` +
+  `✓ ${autoPopulated} trades auto-populated with initial stop loss & target prices.\n` +
+  `✓ ${enriched} trades with stop/target adjustment sequences.\n` +
+  `Open any trade Review — stop loss and target fields are now pre-filled.`);
 }
 
 function detectStopAction(from, to, direction) {
@@ -9922,6 +10074,105 @@ function detectTargetAction(from, to, direction) {
   // Target extended in direction of trade = runner; reduced = cutting short
   const extended = isLong ? to > from : to < from;
   return extended ? 'move' : 'tighten'; // closest approximation
+}
+
+
+// ══════════════════════════════════════════
+// AUTO-DETECT MARKET CONDITION FROM PRICE DATA
+// ══════════════════════════════════════════
+async function autoDetectMarketCondition(trade, hintEl) {
+  if (!ANTHROPIC_KEY) return; // needs AI
+  if (!trade.entryTime || !trade.instrument) return;
+
+  // Map instrument to Yahoo Finance symbol
+  const symbolMap = { MNQ:'NQ=F', MES:'ES=F', NQ:'NQ=F', ES:'ES=F', MCL:'CL=F', MGC:'GC=F', YG:'GC=F', MBT:'BTC-USD' };
+  const ySymbol = symbolMap[trade.instrument] || (trade.instrument + '=F');
+
+  try {
+    // Fetch 1-day OHLCV data centered around trade entry time
+    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' +
+      encodeURIComponent(ySymbol) + '?interval=5m&range=1d';
+    const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) throw new Error('no data');
+
+    const quotes = result.indicators?.quote?.[0];
+    const timestamps = result.timestamp;
+    if (!quotes || !timestamps) throw new Error('no quotes');
+
+    // Find the ~20 bars around the entry time
+    const entryTs = new Date(trade.entryTime).getTime() / 1000;
+    const entryIdx = timestamps.reduce((best, ts, i) =>
+      Math.abs(ts - entryTs) < Math.abs(timestamps[best] - entryTs) ? i : best, 0);
+    const start = Math.max(0, entryIdx - 20);
+    const end = Math.min(timestamps.length - 1, entryIdx + 5);
+
+    const bars = [];
+    for (let i = start; i <= end; i++) {
+      if (quotes.open?.[i] && quotes.high?.[i] && quotes.low?.[i] && quotes.close?.[i]) {
+        bars.push({
+          t: new Date(timestamps[i] * 1000).toLocaleTimeString(undefined, {hour:'2-digit',minute:'2-digit'}),
+          o: quotes.open[i].toFixed(2), h: quotes.high[i].toFixed(2),
+          l: quotes.low[i].toFixed(2), c: quotes.close[i].toFixed(2),
+          v: Math.round((quotes.volume?.[i]||0)/100)
+        });
+      }
+    }
+    if (!bars.length) throw new Error('no bars');
+
+    const barText = bars.map(b => b.t + ' O:' + b.o + ' H:' + b.h + ' L:' + b.l + ' C:' + b.c + ' V:' + b.v).join('\n');
+    const entryBar = bars[Math.min(20, bars.length - 1)];
+
+    // Ask AI to classify market condition
+    const prompt = 'Classify the market condition for a futures trade based on the 5-minute price bars below.\n\n' +
+      'INSTRUMENT: ' + trade.instrument + '\nTRADE DIRECTION: ' + trade.direction + '\nENTRY TIME: ' + (entryBar?.t||'') + '\nENTRY PRICE: ' + trade.entryPrice + '\n\n' +
+      '5-MINUTE BARS (20 bars before entry + 5 after):\n' + barText + '\n\n' +
+      'Choose EXACTLY ONE of these conditions that best describes price action at time of entry:\n' +
+      '- trending-bull (clear uptrend, higher highs/lows)\n' +
+      '- trending-bear (clear downtrend, lower highs/lows)\n' +
+      '- ranging (sideways, price bouncing between levels)\n' +
+      '- wedge (converging highs/lows, compression)\n' +
+      '- news-driven (sharp sudden move, unusual volume spike)\n' +
+      '- low-vol (tight range, minimal movement)\n\n' +
+      'Reply with ONLY the condition key (e.g. "trending-bull"), nothing else.';
+
+    const aiRes = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model: MODEL, max_tokens: 20, messages: [{ role: 'user', content: prompt }] })
+    });
+    const aiData = await aiRes.json();
+    const detected = (aiData.content?.[0]?.text || '').trim().toLowerCase().replace(/[^a-z-]/g,'');
+
+    const validConditions = Object.keys(CONDITION_LABELS);
+    if (validConditions.includes(detected)) {
+      // Only apply if user hasn't manually changed it
+      const condEl = document.getElementById('modalCondition');
+      if (condEl && !condEl.dataset.manuallySet) {
+        condEl.value = detected;
+        // Save it
+        if (currentTradeIdx !== null) {
+          const t2 = trades[currentTradeIdx];
+          const td2 = tradeData[t2.id] = tradeData[t2.id] || {};
+          td2.condition = detected;
+          td2._conditionAutoDetected = true;
+          save();
+        }
+        if (hintEl) {
+          hintEl.textContent = '✓ Auto-detected: ' + CONDITION_LABELS[detected] + ' — override anytime';
+          hintEl.style.color = 'var(--accent)';
+          hintEl.style.display = 'block';
+        }
+      }
+    } else {
+      if (hintEl) { hintEl.textContent = 'Could not auto-detect — select manually'; hintEl.style.color = 'var(--text3)'; }
+    }
+  } catch(e) {
+    if (hintEl) { hintEl.textContent = 'Auto-detect unavailable — select manually'; hintEl.style.color = 'var(--text3)'; }
+    console.warn('autoDetectMarketCondition:', e.message);
+  }
 }
 
 </script>
@@ -10295,7 +10546,7 @@ function detectTargetAction(from, to, direction) {
       <!-- Market condition -->
       <div>
         <div class="section-label">Market condition during trade</div>
-        <select class="form-input" id="modalCondition" onchange="saveTradeData();document.getElementById('modalConditionHint').style.display='none'" style="max-width:300px">
+        <select class="form-input" id="modalCondition" onchange="this.dataset.manuallySet='1';saveTradeData();document.getElementById('modalConditionHint').style.display='none'" style="max-width:300px">
           <option value="">— Select condition —</option>
           <option value="trending-bull">Trending — Bullish</option>
           <option value="trending-bear">Trending — Bearish</option>
