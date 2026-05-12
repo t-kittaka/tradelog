@@ -3935,7 +3935,7 @@ function clearAlertLog(){alertLog=[];firedAlertKeys.clear();renderAlertLog();upd
 (function() {
   const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
-  if (app) app.style.display = 'none';
+  // app stays visible; login overlay covers it
   if (chatBtn) chatBtn.style.display = 'none';
 })();
 
@@ -6751,7 +6751,7 @@ function exportPDF() {
     </ul>` : ''}
 
     <div class="footer">TradeLog Pro · Generated ${new Date().toLocaleString()} · ${trades.length} trades · ${strategies.length} strategies · ${accounts.length} accounts</div>
-  </body></html>`);
+  `);
   printWin.document.close();
   setTimeout(() => printWin.print(), 500);
 }
@@ -7402,23 +7402,26 @@ async function tryRestoreSession() {
 
 function showLoginScreen() {
   const login = document.getElementById('loginScreen');
-  const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
-  if (login) { login.style.display = 'flex'; login.style.alignItems = 'center'; login.style.justifyContent = 'center'; }
-  // Make login card visible (it may start as visibility:hidden)
+  // Show the login overlay - it is position:fixed so it covers everything
+  if (login) {
+    login.style.display = 'flex';
+    login.style.alignItems = 'center';
+    login.style.justifyContent = 'center';
+    login.style.width = '100%';
+    login.style.height = '100%';
+  }
   const card = login?.firstElementChild;
   if (card) card.style.visibility = 'visible';
-  if (app) app.style.display = 'none';
+  // Do NOT hide .app - login overlay covers it via z-index
   if (chatBtn) chatBtn.style.display = 'none';
   setTimeout(() => document.getElementById('loginEmail')?.focus(), 100);
 }
 
 function hideLoginScreen() {
   const login = document.getElementById('loginScreen');
-  const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
   if (login) login.style.display = 'none';
-  if (app) { app.style.display = 'flex'; app.style.visibility = 'visible'; }
   if (chatBtn) chatBtn.style.display = 'flex';
 }
 
@@ -10008,41 +10011,6 @@ function detectTargetAction(from, to, direction) {
 
 </div>
 
-<!-- ── LOGIN SCREEN ── -->
-<div id="loginScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:36px 40px;width:360px;max-width:calc(100vw - 40px);box-shadow:0 16px 48px rgba(0,0,0,.7)">
-    <!-- Logo -->
-    <div style="text-align:center;margin-bottom:28px">
-      <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);letter-spacing:.08em">Trade Boy</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">PRO · Secure sign in</div>
-    </div>
-    <!-- Form -->
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div>
-        <label style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Email</label>
-        <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com"
-          style="width:100%"
-          onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
-      </div>
-      <div>
-        <label style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Password</label>
-        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••"
-          style="width:100%"
-          onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div id="loginError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono);background:rgba(255,85,85,.08);border:1px solid rgba(255,85,85,.2);border-radius:var(--radius);padding:7px 10px"></div>
-      <button id="loginBtn" onclick="doLogin()"
-        style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:4px">
-        Sign in →
-      </button>
-    </div>
-    <!-- Footer -->
-    <div style="margin-top:20px;font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center;line-height:1.6">
-      Your data is stored securely in Supabase.<br>
-      Only you can access it when signed in.
-    </div>
-  </div>
-</div>
 <!-- ── CLEAR MEMORY CONFIRMATION MODAL ── -->
 <div id="clearMemoryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;align-items:center;justify-content:center">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px 32px;width:460px;max-width:calc(100vw - 40px);box-shadow:0 12px 40px rgba(0,0,0,.8)">
@@ -10691,8 +10659,45 @@ function detectTargetAction(from, to, direction) {
     </div>
   </div>
 </body>
-</html
   <!-- ══ MEMORY SECTION ══ -->
   <!-- ══ ALERTS SECTION ══ -->
   <!-- ══ RISK CALCULATOR SECTION ══ -->
 >
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:var(--bg);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:36px 40px;width:360px;max-width:calc(100vw - 40px);box-shadow:0 16px 48px rgba(0,0,0,.7)">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);letter-spacing:.08em">Trade Boy</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">PRO · Secure sign in</div>
+    </div>
+    <!-- Form -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Email</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com"
+          style="width:100%"
+          onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+      </div>
+      <div>
+        <label style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Password</label>
+        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••"
+          style="width:100%"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="loginError" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono);background:rgba(255,85,85,.08);border:1px solid rgba(255,85,85,.2);border-radius:var(--radius);padding:7px 10px"></div>
+      <button id="loginBtn" onclick="doLogin()"
+        style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:4px">
+        Sign in →
+      </button>
+    </div>
+    <!-- Footer -->
+    <div style="margin-top:20px;font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center;line-height:1.6">
+      Your data is stored securely in Supabase.<br>
+      Only you can access it when signed in.
+    </div>
+  </div>
+</div>
+</body>
+</html>
