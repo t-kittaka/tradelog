@@ -3935,7 +3935,7 @@ function clearAlertLog(){alertLog=[];firedAlertKeys.clear();renderAlertLog();upd
 (function() {
   const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
-  if (app) app.style.visibility = 'hidden';
+  if (app) app.style.display = 'none';
   if (chatBtn) chatBtn.style.display = 'none';
 })();
 
@@ -7404,10 +7404,12 @@ function showLoginScreen() {
   const login = document.getElementById('loginScreen');
   const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
-  if (login) login.style.display = 'flex';
-  if (app) app.style.visibility = 'hidden';
+  if (login) { login.style.display = 'flex'; login.style.alignItems = 'center'; login.style.justifyContent = 'center'; }
+  // Make login card visible (it may start as visibility:hidden)
+  const card = login?.firstElementChild;
+  if (card) card.style.visibility = 'visible';
+  if (app) app.style.display = 'none';
   if (chatBtn) chatBtn.style.display = 'none';
-  // Focus email field
   setTimeout(() => document.getElementById('loginEmail')?.focus(), 100);
 }
 
@@ -7416,7 +7418,7 @@ function hideLoginScreen() {
   const app = document.querySelector('.app');
   const chatBtn = document.getElementById('chatFloatBtn');
   if (login) login.style.display = 'none';
-  if (app) app.style.visibility = 'visible';
+  if (app) { app.style.display = 'flex'; app.style.visibility = 'visible'; }
   if (chatBtn) chatBtn.style.display = 'flex';
 }
 
@@ -10007,7 +10009,7 @@ function detectTargetAction(from, to, direction) {
 </div>
 
 <!-- ── LOGIN SCREEN ── -->
-<div id="loginScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center">
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:36px 40px;width:360px;max-width:calc(100vw - 40px);box-shadow:0 16px 48px rgba(0,0,0,.7)">
     <!-- Logo -->
     <div style="text-align:center;margin-bottom:28px">
